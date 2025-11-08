@@ -182,6 +182,15 @@ const createSession = async (req, res, next) => {
       return res.status(409).json({ error: 'This time slot is already booked' });
     }
 
+    // Check if this is the first session between this student and tutor
+    const previousSessions = await prisma.session.count({
+      where: {
+        studentId: userId,
+        tutorId,
+      },
+    });
+    const isFirstSession = previousSessions === 0;
+
     // Generate unique Jitsi room ID
     const jitsiRoomId = `tutoring-${crypto.randomBytes(8).toString('hex')}`;
 
@@ -195,6 +204,7 @@ const createSession = async (req, res, next) => {
         duration,
         jitsiRoomId,
         status: 'SCHEDULED',
+        isFirstSession,
       },
       include: {
         student: {
@@ -283,11 +293,20 @@ const updateSessionStatus = async (req, res, next) => {
 const cancelSession = async (req, res, next) => {
   try {
     const userId = req.user.id;
+    const role = req.user.role;
     const { id } = req.params;
+    const { reason } = req.body; // Optional cancellation reason
 
     // Get session
     const session = await prisma.session.findUnique({
       where: { id },
+      include: {
+        tutor: {
+          include: {
+            tutorProfile: true,
+          },
+        },
+      },
     });
 
     if (!session) {
@@ -304,10 +323,18 @@ const cancelSession = async (req, res, next) => {
       return res.status(400).json({ error: 'Cannot cancel completed session' });
     }
 
+    // Determine who cancelled
+    const cancelledBy = session.tutorId === userId ? 'TUTOR' : 'STUDENT';
+
     // Update session to cancelled
     const updatedSession = await prisma.session.update({
       where: { id },
-      data: { status: 'CANCELLED' },
+      data: {
+        status: 'CANCELLED',
+        cancelledBy,
+        cancelledAt: new Date(),
+        cancellationReason: reason || null,
+      },
       include: {
         student: {
           select: {
@@ -327,6 +354,12 @@ const cancelSession = async (req, res, next) => {
         },
       },
     });
+
+    // If tutor cancelled, trigger metrics recalculation
+    if (cancelledBy === 'TUTOR' && session.tutor.tutorProfile) {
+      const { recalculateTutorMetrics } = require('./ratingController');
+      await recalculateTutorMetrics(session.tutor.tutorProfile.id);
+    }
 
     res.json({ session: updatedSession });
   } catch (error) {

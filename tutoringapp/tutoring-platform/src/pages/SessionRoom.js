@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { sessionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ChatBox from '../components/session/ChatBox';
+import RatingModal from '../components/session/RatingModal';
 
 const SessionRoom = () => {
   const { id } = useParams();
@@ -11,6 +12,7 @@ const SessionRoom = () => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showRatingModal, setShowRatingModal] = useState(false);
   const jitsiContainerRef = useRef(null);
   const jitsiApiRef = useRef(null);
 
@@ -23,19 +25,27 @@ const SessionRoom = () => {
       initializeJitsi();
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount only
     return () => {
       if (jitsiApiRef.current) {
         jitsiApiRef.current.dispose();
         jitsiApiRef.current = null;
       }
     };
-  }, [session]);
+  }, [session?.id]); // Only re-run if session ID changes, not on every session state update
 
   const fetchSession = async () => {
     try {
       setLoading(true);
       const data = await sessionsAPI.getSessionById(id);
+      
+      // Check if session is completed or cancelled - can't join
+      if (data.session.status === 'COMPLETED' || data.session.status === 'CANCELLED') {
+        setError('This session has ended and cannot be rejoined.');
+        setLoading(false);
+        return;
+      }
+
       setSession(data.session);
 
       // Update session status to LIVE if it's scheduled
@@ -115,11 +125,50 @@ const SessionRoom = () => {
     }
   };
 
-  const handleLeaveSession = () => {
-    if (jitsiApiRef.current) {
-      jitsiApiRef.current.dispose();
-      jitsiApiRef.current = null;
+  const handleLeaveSession = async () => {
+    try {
+      // Mark session as completed when anyone leaves
+      await sessionsAPI.updateSessionStatus(id, 'COMPLETED');
+      
+      // Update local session state
+      setSession({ ...session, status: 'COMPLETED' });
+
+      // Dispose Jitsi
+      if (jitsiApiRef.current) {
+        jitsiApiRef.current.dispose();
+        jitsiApiRef.current = null;
+      }
+
+      // If student is leaving, show rating modal
+      if (userData.role === 'STUDENT') {
+        setShowRatingModal(true);
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      console.error('Error leaving session:', err);
+      // Still navigate even if update fails
+      if (jitsiApiRef.current) {
+        jitsiApiRef.current.dispose();
+        jitsiApiRef.current = null;
+      }
+      
+      // Show rating modal for students anyway
+      if (userData.role === 'STUDENT') {
+        setShowRatingModal(true);
+      } else {
+        navigate('/dashboard');
+      }
     }
+  };
+
+  const handleRatingClose = () => {
+    setShowRatingModal(false);
+    navigate('/dashboard');
+  };
+
+  const handleRatingSuccess = () => {
+    setShowRatingModal(false);
     navigate('/dashboard');
   };
 
@@ -139,7 +188,7 @@ const SessionRoom = () => {
         </div>
         <button
           onClick={() => navigate('/dashboard')}
-          className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-md"
+          className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-full font-medium transition-all shadow-lg hover:shadow-purple-500/50"
         >
           Back to Dashboard
         </button>
@@ -173,9 +222,9 @@ const SessionRoom = () => {
           </div>
           <button
             onClick={handleLeaveSession}
-            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md font-medium"
+            className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full font-medium transition-all shadow-lg hover:shadow-red-500/50"
           >
-            Leave Session
+            {isTutor ? 'End Session' : 'Leave Session'}
           </button>
         </div>
       </div>
@@ -225,6 +274,15 @@ const SessionRoom = () => {
           </p>
         </div>
       </div>
+
+      {/* Rating Modal (for students only) */}
+      {showRatingModal && (
+        <RatingModal
+          sessionId={id}
+          onClose={handleRatingClose}
+          onSubmitSuccess={handleRatingSuccess}
+        />
+      )}
     </div>
   );
 };

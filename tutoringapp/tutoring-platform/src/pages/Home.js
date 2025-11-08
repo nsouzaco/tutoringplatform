@@ -1,74 +1,124 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 
 const Home = () => {
   const { currentUser } = useAuth();
 
   return (
-    <div className="text-center py-20">
-      <h1 className="text-5xl font-bold text-gray-900 mb-6">
-        Welcome to TutorPlatform
-      </h1>
-      <p className="text-xl text-gray-600 mb-12 max-w-2xl mx-auto">
-        Connect with expert tutors for one-on-one video sessions. Learn, grow, and achieve your goals
-        with personalized tutoring powered by AI insights.
-      </p>
+    <div>
+        {/* Badge */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mx-auto mt-12 flex max-w-fit items-center justify-center space-x-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm border border-white/20"
+        >
+          <span className="text-sm font-medium text-white">
+            🚀 Join thousands of students and tutors worldwide
+          </span>
+          <ArrowRight className="h-4 w-4 text-white" />
+        </motion.div>
 
-      <div className="flex justify-center space-x-4">
-        {currentUser ? (
-          <Link
-            to="/dashboard"
-            className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
+        {/* Hero section */}
+        <div className="container mx-auto mt-12 px-4 text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mx-auto max-w-4xl text-4xl font-bold leading-tight text-white md:text-5xl lg:text-6xl"
           >
-            Go to Dashboard
-          </Link>
-        ) : (
-          <>
-            <Link
-              to="/register"
-              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-lg text-lg font-medium"
-            >
-              Get Started
-            </Link>
-            <Link
-              to="/login"
-              className="bg-white hover:bg-gray-50 text-primary-600 border-2 border-primary-600 px-8 py-3 rounded-lg text-lg font-medium"
-            >
-              Sign In
-            </Link>
-          </>
-        )}
-      </div>
+            Connect with Expert Tutors for{' '}
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              One-on-One
+            </span>{' '}
+            Video Sessions
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mx-auto mt-6 max-w-2xl text-lg text-gray-300"
+          >
+            Learn, grow, and achieve your goals with personalized tutoring powered by AI insights. 
+            Book sessions that fit your schedule and get expert guidance when you need it most.
+          </motion.p>
+          
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="mt-10 flex flex-col items-center justify-center space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0"
+          >
+            {currentUser ? (
+              <Link
+                to="/dashboard"
+                className="group h-12 rounded-full bg-white px-8 text-base font-medium text-black hover:bg-white/90 transition-all flex items-center space-x-2"
+              >
+                <span>Go to Dashboard</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/register"
+                  className="group h-12 rounded-full bg-white px-8 text-base font-medium text-black hover:bg-white/90 transition-all flex items-center space-x-2"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  to="/login"
+                  className="h-12 rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm px-8 text-base font-medium text-white hover:bg-white/20 transition-all"
+                >
+                  Sign In
+                </Link>
+              </>
+            )}
+          </motion.div>
 
-      <div className="mt-20 grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-4xl mb-4">📚</div>
-          <h3 className="text-xl font-semibold mb-2">Find Tutors</h3>
-          <p className="text-gray-600">
-            Browse available tutors and book sessions that fit your schedule
-          </p>
+          {/* Feature cards */}
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-20 mb-20 grid md:grid-cols-3 gap-4 max-w-4xl mx-auto"
+          >
+            <FeatureCard
+              title="Flexible Scheduling"
+              description="Browse available tutors and book sessions that fit your schedule."
+            />
+            <FeatureCard
+              title="Live Video Sessions"
+              description="Real-time video, chat, and collaborative notes for an engaging and effective learning experience."
+            />
+            <FeatureCard
+              title="AI-Powered Insights"
+              description="Tutors receive AI-generated reports with engagement metrics and personalized recommendations."
+            />
+          </motion.div>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-4xl mb-4">🎥</div>
-          <h3 className="text-xl font-semibold mb-2">Video Sessions</h3>
-          <p className="text-gray-600">
-            Real-time video, chat, and collaborative notes for effective learning
-          </p>
-        </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="text-4xl mb-4">🤖</div>
-          <h3 className="text-xl font-semibold mb-2">AI Insights</h3>
-          <p className="text-gray-600">
-            Tutors get AI-powered reports to track progress and improve teaching
-          </p>
-        </div>
-      </div>
     </div>
   );
 };
 
-export default Home;
+const FeatureCard = ({ title, description }) => {
+  return (
+    <motion.div 
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.2 }}
+      className="group relative bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:border-white/20 transition-all"
+    >
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/0 to-pink-500/0 group-hover:from-purple-500/5 group-hover:to-pink-500/5 transition-all"></div>
+      <div className="relative">
+        <h3 className="text-lg font-semibold mb-2 text-white">{title}</h3>
+        <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
+      </div>
+    </motion.div>
+  );
+};
 
+export default Home;

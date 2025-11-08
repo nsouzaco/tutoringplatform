@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import Availability from './pages/Availability';
 import Tutors from './pages/Tutors';
 import SessionRoom from './pages/SessionRoom';
+import PastSessions from './pages/PastSessions';
 
 function App() {
   return (
@@ -55,6 +56,15 @@ function App() {
               element={
                 <PrivateRoute>
                   <SessionRoom />
+                </PrivateRoute>
+              } 
+            />
+
+            <Route 
+              path="/past-sessions" 
+              element={
+                <PrivateRoute>
+                  <PastSessions />
                 </PrivateRoute>
               } 
             />

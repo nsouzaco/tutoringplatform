@@ -73,5 +73,18 @@ export const sessionsAPI = {
   cancelSession: (id) => api.delete(`/sessions/${id}`),
 };
 
+// Reports API
+export const reportsAPI = {
+  generateReport: (sessionId) => api.post(`/reports/session/${sessionId}`),
+  getReport: (sessionId) => api.get(`/reports/session/${sessionId}`),
+  getTutorReports: () => api.get('/reports'),
+};
+
+// Ratings API
+export const ratingsAPI = {
+  submitRating: (sessionId, data) => api.post(`/ratings/session/${sessionId}`, data),
+  getRating: (sessionId) => api.get(`/ratings/session/${sessionId}`),
+};
+
 export default api;
 

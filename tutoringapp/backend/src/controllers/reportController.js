@@ -2,10 +2,16 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const OpenAI = require('openai');
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI (optional - only if API key is provided)
+let openai = null;
+if (process.env.OPENAI_API_KEY) {
+  openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+  console.log('✅ OpenAI initialized for AI-powered reports');
+} else {
+  console.log('⚠️ OpenAI API key not found - AI report generation will be disabled');
+}
 
 // Generate AI session report
 const generateReport = async (req, res, next) => {
@@ -49,6 +55,7 @@ const generateReport = async (req, res, next) => {
           },
         },
         sessionNote: true,
+        rating: true, // Include student rating
       },
     });
 
@@ -75,12 +82,31 @@ const generateReport = async (req, res, next) => {
       return res.json({ report: existingReport });
     }
 
+    // Check if OpenAI is available
+    if (!openai) {
+      return res.status(503).json({ 
+        error: 'AI report generation is not available. Please configure OPENAI_API_KEY.' 
+      });
+    }
+
     // Prepare data for GPT-4
     const chatHistory = session.chatMessages
       .map(msg => `${msg.sender.name} (${msg.sender.role}): ${msg.message}`)
       .join('\n');
 
     const notes = session.sessionNote?.content || 'No notes taken';
+
+    // Format rating information
+    let ratingInfo = 'No student rating yet';
+    if (session.rating) {
+      const stars = (count) => '⭐'.repeat(count);
+      ratingInfo = `
+- Punctuality: ${session.rating.punctuality}/5 ${stars(session.rating.punctuality)}
+- Friendliness: ${session.rating.friendliness}/5 ${stars(session.rating.friendliness)}
+- Helpfulness: ${session.rating.helpfulness}/5 ${stars(session.rating.helpfulness)}
+- Overall Rating: ${session.rating.overallRating.toFixed(1)}/5
+${session.rating.comment ? `- Student Comment: "${session.rating.comment}"` : ''}`;
+    }
 
     const prompt = `You are an educational AI assistant analyzing a tutoring session. Generate a comprehensive report for the tutor.
 
@@ -89,6 +115,10 @@ const generateReport = async (req, res, next) => {
 - Tutor: ${session.tutor.name}
 - Duration: ${session.duration} minutes
 - Date: ${new Date(session.startTime).toLocaleString()}
+${session.isFirstSession ? '- ⚠️ This was a FIRST SESSION between this student and tutor' : ''}
+
+**Student Rating:**
+${ratingInfo}
 
 **Chat Messages:**
 ${chatHistory || 'No chat messages'}

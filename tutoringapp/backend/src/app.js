@@ -50,6 +50,7 @@ app.use('/api/availability', require('./routes/availability'));
 app.use('/api/tutors', require('./routes/tutors'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/ratings', require('./routes/ratings'));
 
 // 404 handler
 app.use(notFound);

@@ -6,6 +6,13 @@ const prisma = require('../config/prisma');
  */
 const authenticate = async (req, res, next) => {
   try {
+    // Check if Firebase Admin is initialized
+    if (!admin) {
+      return res.status(503).json({ 
+        error: 'Authentication service unavailable. Please configure Firebase Admin SDK.' 
+      });
+    }
+
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
     

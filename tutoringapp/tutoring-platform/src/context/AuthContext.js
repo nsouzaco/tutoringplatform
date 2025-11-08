@@ -31,6 +31,14 @@ export const AuthProvider = ({ children }) => {
       setUserData(response.user);
       return response.user;
     } catch (err) {
+      // If token is invalid/expired, silently sign out
+      if (err.message.includes('Invalid or expired token') || err.message.includes('Unauthorized')) {
+        await firebaseSignOut(auth);
+        setCurrentUser(null);
+        setUserData(null);
+        return null;
+      }
+      // For other errors, log them
       console.error('Error fetching user data:', err);
       setError(err.message);
       return null;

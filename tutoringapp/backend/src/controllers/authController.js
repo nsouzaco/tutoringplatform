@@ -5,7 +5,18 @@ const prisma = require('../config/prisma');
  */
 const register = async (req, res, next) => {
   try {
-    const { firebaseUid, email, name, role, timezone, subjects, bio } = req.body;
+    const { firebaseUid, email, name, role, timezone, phoneNumber, location, subjects, bio } = req.body;
+
+    // Debug logging
+    console.log('📝 Registration request received:', { 
+      email, 
+      name, 
+      role, 
+      phoneNumber, 
+      location,
+      hasSubjects: !!subjects,
+      hasBio: !!bio 
+    });
 
     // Validate required fields
     if (!firebaseUid || !email || !name || !role) {
@@ -15,9 +26,9 @@ const register = async (req, res, next) => {
     }
 
     // Validate role
-    if (!['STUDENT', 'TUTOR'].includes(role)) {
+    if (!['STUDENT', 'TUTOR', 'ADMIN'].includes(role)) {
       return res.status(400).json({
-        error: 'Invalid role. Must be STUDENT or TUTOR',
+        error: 'Invalid role. Must be STUDENT, TUTOR, or ADMIN',
       });
     }
 
@@ -39,6 +50,8 @@ const register = async (req, res, next) => {
         email,
         name,
         role,
+        phoneNumber: phoneNumber || null,
+        location: location || null,
         timezone: timezone || 'UTC',
         // If tutor, create tutor profile
         ...(role === 'TUTOR' && {
@@ -62,6 +75,8 @@ const register = async (req, res, next) => {
         email: user.email,
         name: user.name,
         role: user.role,
+        phoneNumber: user.phoneNumber,
+        location: user.location,
         timezone: user.timezone,
         tutorProfile: user.tutorProfile,
       },
@@ -90,6 +105,8 @@ const getMe = async (req, res, next) => {
         email: user.email,
         name: user.name,
         role: user.role,
+        phoneNumber: user.phoneNumber,
+        location: user.location,
         profilePhoto: user.profilePhoto,
         timezone: user.timezone,
         tutorProfile: user.tutorProfile,
@@ -105,12 +122,14 @@ const getMe = async (req, res, next) => {
  */
 const updateProfile = async (req, res, next) => {
   try {
-    const { name, profilePhoto, timezone, bio, subjects } = req.body;
+    const { name, phoneNumber, location, profilePhoto, timezone, bio, subjects } = req.body;
     const userId = req.user.id;
 
     // Update user basic info
     const updateData = {};
     if (name) updateData.name = name;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (location !== undefined) updateData.location = location;
     if (profilePhoto) updateData.profilePhoto = profilePhoto;
     if (timezone) updateData.timezone = timezone;
 
