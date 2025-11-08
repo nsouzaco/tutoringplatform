@@ -1,0 +1,36 @@
+# 🔐 Local Environment Setup
+
+## Create your `.env` file
+
+**IMPORTANT:** Your `.env` file is gitignored and will NOT be committed.
+
+Copy this into `backend/.env`:
+
+```env
+PORT=5000
+NODE_ENV=development
+
+# Database - will update with RDS endpoint
+DATABASE_URL=prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19OZjNPaGNRS3R0R1J2UGNmRUhWRHAiLCJhcGlfa2V5IjoiMDFLOUc4NVNWS1JWODc0RjFRM0I0NE1FOVQiLCJ0ZW5hbnRfaWQiOiI2NzZiMDcwMzhlNGJlNmE4NDA1ZTJhNmE3YmIxZmFjMDhjZWJmYzI4ZmM0NTg4ODBhMjY0YjYwYjAxOTc0MWU3IiwiaW50ZXJuYWxfc2VjcmV0IjoiYzM0ZGQyNmUtZjc1Ni00NzEwLTg3YWItZjAxYWFkMTliZGViIn0.tARYHRt0fxVWBvkBE_8Lw7Kw4A157lSVMEbmKuqCVVg
+DIRECT_URL=postgres://676b07038e4be6a8405e2a6a7bb1fac08cebfc28fc458880a264b60b019741e7:sk_Nf3OhcQKttGRvPcfEHVDp@db.prisma.io:5432/postgres?sslmode=require
+
+# Firebase Admin SDK - from your downloaded JSON
+FIREBASE_PROJECT_ID=tutoring-f5d07
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-fbsvc@tutoring-f5d07.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC8mUmOGlRNMPp/\nVnOtjlqKqHnh4O3Jq9cEBBaRPjV5Bx9a68PZ8lJ23UEFnntyIlchM+Bk1jCcGgbW\nQ5U3/95KiyzOA0es+iMvLwpPo055xac5O0U+eOTFNrcGE1xajk9sY9QeyvM6Tyvu\nGoaptnlR0tT4lVjMqVmgpqDRS8TpBP7I2xDY0tHW+Rie80BdohTtBxZmW/DebwbV\nTq/dEpa3i6/NpEK1QSYCnb5Kt2auwtyhenu76ShIP41Dr4oUO0CXhK2HeXHNX6tN\nifBs7gvKOF/Ox7WUdDXi3FJ5lujtegLRkMdPyghTGBatub7t0XO9fATI2NRiOCAg\nRs4jWbftAgMBAAECggEAAs1dQisCeyYh5q/0Zo0Bq+M+clx68/7lYjYkVrKfrUVt\nkhaEMbIPxxvY+jolV+gKNuBUMnNbRAp/9QGKj0syNJXWS9ZRI5EQ4kPW6aGByj3l\nUuyeRgQaVBLQy9qQSfko1XGzRmTaEdD41GAZBZ8ENPLGvs3LRLk0b3ZiV9HCInst\nuOWLB9eIfsCjrr/oth1/KcPIcl7kx0shARQlAWyj1Mzn1y+Bv232s8R0LsuU5ecf\nrKh2F6vlCs9dVC5oM/JnUkc0ogEU5S8aUfX3sDC4CwRT7CpgV9dvSZx4ksh5HRhr\nosiUgVwPmcbGYdQKaOYKM04ccwDPiTDVdwWnedst2QKBgQDsZxQwLuKnA82JvIBD\nugsSTup7Js71zUqmEpf+NTKS4XUGnabFKq+DqicOl4MqUVfhrNjbHrvPslMUAbfq\nX2kMCdWmfhQK6TOzdekYwLN63bpiCGSnFEQJg2+ErcSIWt5C1BH1c5xCDU0e/oC1\noK7abXmOUHon4IpylAWCXshnpQKBgQDMO7fHpxheR0V4kTBJM94u6ddoZvZMlTVj\nZpfpkeJyAe5EvDjsb8Nag0aF1U/KI3FFBQbo8U8SmaD8CfkZqkbtuDNr74J6mtKl\neMbbtMwm6aJacwjQRG/C7/Pi9WnmszL9IHheVLOaBDtQ6YqaxHCWuWqzsjSZciLC\na7CRwzZcqQKBgQDhvWicvhi2rT32+aZthdkOqYblBGD6fQd8YCL9nuTlNx9dqutW\nOXWSP8e9+lZI8ZX+rOQDEWz8XudQInfx+RvBYB7BNoGDDb7N7pkghtqcR+CzvhoH\nJaX2g6jYxGn4XvUAUau4e6ZJuJPdNd/IEGEHuSQrDpQnQhZSZSCBpmqt9QKBgCNB\nN8NGK+WyZeKfJXetdXAhu6ZxB5lGtHWZMyYFodJOVQQWfbkKve009gqKPQDGx3nD\nmWLCrQSn8msviYmNpDrK7k12hc6GRVB9Hc61Ufxxni4A54eUGLrM0wvdk09Ypbee\nUEjwVCSFEHwyJFP9DvZlwW6Nl5jZY/itwEgZK5wpAoGBAI3RDg3Y7mAemxTtbDKs\nluy6ibOMIAIAFIHg1Yii5HPULXGraTLMEShjHTfwfmaDlixH1K6Q42fLW6/3eprU\nP4lx9vHIlyTbNFz7U/7d6FsXxnUYGzUFdUifGsQKv4aFoE/+MPlDjesccGTCpxwV\n5FRk+ZVkz9cVl/osMce1WAdj\n-----END PRIVATE KEY-----\n"
+
+# OpenAI (optional for now)
+OPENAI_API_KEY=sk-your-key-here
+
+# Frontend URL
+FRONTEND_URL=http://localhost:3000
+```
+
+## For AWS Deployment
+
+When deploying to App Runner, you'll add these same variables in the AWS Console under "Environment variables" section.
+
+**NEVER commit your `.env` file to git!**
+
+Your `.gitignore` already has `.env` listed ✅
+

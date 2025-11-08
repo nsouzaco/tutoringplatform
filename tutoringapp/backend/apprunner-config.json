@@ -1,0 +1,44 @@
+{
+  "ServiceName": "tutoring-platform-api",
+  "SourceConfiguration": {
+    "AuthenticationConfiguration": {
+      "ConnectionArn": "GITHUB_CONNECTION_ARN_PLACEHOLDER"
+    },
+    "AutoDeploymentsEnabled": true,
+    "CodeRepository": {
+      "RepositoryUrl": "https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME",
+      "SourceCodeVersion": {
+        "Type": "BRANCH",
+        "Value": "main"
+      },
+      "CodeConfiguration": {
+        "ConfigurationSource": "API",
+        "CodeConfigurationValues": {
+          "Runtime": "NODEJS_18",
+          "BuildCommand": "npm install && npx prisma generate",
+          "StartCommand": "npm start",
+          "Port": "5000",
+          "RuntimeEnvironmentVariables": {
+            "PORT": "5000",
+            "NODE_ENV": "production"
+          }
+        }
+      },
+      "SourceDirectory": "backend"
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "1 vCPU",
+    "Memory": "2 GB"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/health",
+    "Interval": 10,
+    "Timeout": 5,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 5
+  },
+  "AutoScalingConfigurationArn": "arn:aws:apprunner:us-east-2:971422717446:autoscalingconfiguration/DefaultConfiguration/1/00000000000000000000000000000001"
+}
+
