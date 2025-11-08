@@ -61,6 +61,63 @@ app.use(errorHandler);
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
+  // Join a session room
+  socket.on('join-session', (sessionId) => {
+    socket.join(sessionId);
+    console.log(`Socket ${socket.id} joined session ${sessionId}`);
+  });
+
+  // Leave a session room
+  socket.on('leave-session', (sessionId) => {
+    socket.leave(sessionId);
+    console.log(`Socket ${socket.id} left session ${sessionId}`);
+  });
+
+  // Handle chat messages
+  socket.on('chat-message', async (data) => {
+    const { sessionId, senderId, message } = data;
+    
+    try {
+      // Save message to database
+      const { PrismaClient } = require('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      const chatMessage = await prisma.chatMessage.create({
+        data: {
+          sessionId,
+          senderId,
+          message,
+        },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              role: true,
+            },
+          },
+        },
+      });
+
+      // Broadcast message to all users in the session room
+      io.to(sessionId).emit('chat-message', chatMessage);
+      
+      await prisma.$disconnect();
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+      socket.emit('chat-error', { error: 'Failed to send message' });
+    }
+  });
+
+  // Handle typing indicator
+  socket.on('typing', ({ sessionId, userName }) => {
+    socket.to(sessionId).emit('user-typing', { userName });
+  });
+
+  socket.on('stop-typing', ({ sessionId }) => {
+    socket.to(sessionId).emit('user-stopped-typing');
+  });
+
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });

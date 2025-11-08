@@ -1,111 +1,200 @@
 # 🎉 Deployment Successful!
 
-## Backend - AWS ECS Fargate
-
-✅ **Status**: LIVE and Running
-✅ **Public IP**: 18.223.116.242
-✅ **API URL**: http://18.223.116.242:5000
-✅ **Health Endpoint**: http://18.223.116.242:5000/health
-
-### AWS Resources Created
-
-- **ECS Cluster**: `tutoring-platform-cluster`
-- **ECS Service**: `tutoring-platform-api-service`
-- **Task Definition**: `tutoring-platform-api:1`
-- **Security Group**: `sg-0ceb58de317474434`
-- **ECR Repository**: `tutoring-platform-api`
-- **CloudWatch Log Group**: `/ecs/tutoring-platform-api`
-
-### Configuration
-
-- **CPU**: 1024 (1 vCPU)
-- **Memory**: 2048 MB (2 GB)
-- **Platform**: Linux/AMD64
-- **Network**: Public IP with assignPublicIp enabled
-- **Port**: 5000
+Your Tutoring Platform application is now deployed and accessible!
 
 ---
 
-## Frontend - Vercel
+## Frontend - Netlify
 
-✅ **Status**: Deployed
-✅ **URL**: https://tutoring-platform-hwqkcnwh8-natalyscst-gmailcoms-projects.vercel.app
+✅ **Status**: Deployed and Running
+✅ **URL**: https://soft-rugelach-38ffa4.netlify.app
+
+### Key Configuration
+- **Platform**: Netlify
+- **Build**: Create React App (via `npm run build`)
+- **Authentication**: Firebase Client SDK
+- **API URL**: https://tutoringplatform-production-ccdc.up.railway.app/api
+- **Automatic HTTPS**: Enabled by Netlify
 
 ### Environment Variables Configured
-
-- `REACT_APP_API_URL`: http://18.223.116.242:5000
-- `REACT_APP_FIREBASE_API_KEY`
-- `REACT_APP_FIREBASE_AUTH_DOMAIN`
-- `REACT_APP_FIREBASE_PROJECT_ID`
-- `REACT_APP_FIREBASE_STORAGE_BUCKET`
-- `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`
-- `REACT_APP_FIREBASE_APP_ID`
-- `REACT_APP_FIREBASE_MEASUREMENT_ID`
-
----
-
-## Database
-
-✅ **Database**: Vercel Postgres (Prisma Accelerate)
-✅ **Status**: Connected and migrations applied
+- `REACT_APP_API_URL`: https://tutoringplatform-production-ccdc.up.railway.app/api
+- `REACT_APP_FIREBASE_API_KEY`: AIzaSyC6dHjyw6rrJ84e24GwfwTZt-1Cibuex8k
+- `REACT_APP_FIREBASE_AUTH_DOMAIN`: tutoring-f5d07.firebaseapp.com
+- `REACT_APP_FIREBASE_PROJECT_ID`: tutoring-f5d07
+- `REACT_APP_FIREBASE_STORAGE_BUCKET`: tutoring-f5d07.firebasestorage.app
+- `REACT_APP_FIREBASE_MESSAGING_SENDER_ID`: 233846612932
+- `REACT_APP_FIREBASE_APP_ID`: 1:233846612932:web:05e3f9c9675ee503b3fa91
+- `REACT_APP_FIREBASE_MEASUREMENT_ID`: G-Q6Z57L6K08
 
 ---
 
-## How to Deploy Updates
+## Backend - Railway.app
 
-### Backend (ECS Fargate)
+✅ **Status**: Deployed and Running
+✅ **URL**: https://tutoringplatform-production-ccdc.up.railway.app
+✅ **Health Check**: https://tutoringplatform-production-ccdc.up.railway.app/health
 
-1. Make your code changes
-2. Build and push new Docker image:
+### Key Configuration
+- **Platform**: Railway.app
+- **Runtime**: Node.js
+- **Database**: Vercel Postgres (Neon-powered)
+- **Authentication**: Firebase Admin SDK
+- **Automatic HTTPS**: Enabled by Railway
+
+### Environment Variables Configured
+- `PORT`: 5000
+- `NODE_ENV`: production
+- `DATABASE_URL`: (your Prisma Accelerate URL)
+- `DIRECT_URL`: (your Postgres URL)
+- `FIREBASE_PROJECT_ID`: tutoring-f5d07
+- `FIREBASE_CLIENT_EMAIL`: firebase-adminsdk-fbsvc@tutoring-f5d07.iam.gserviceaccount.com
+- `FIREBASE_PRIVATE_KEY`: (your Firebase private key)
+- `FRONTEND_URL`: https://soft-rugelach-38ffa4.netlify.app
+
+---
+
+## Local Development Setup
+
+To run the project locally, ensure you have Node.js (v18+) and PostgreSQL installed.
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/nsouzaco/tutoringplatform.git
+   cd tutoringplatform
+   ```
+
+2. **Backend Setup:**
    ```bash
    cd backend
-   docker buildx build --platform linux/amd64 -t tutoring-platform-api:latest .
-   docker tag tutoring-platform-api:latest 971422717446.dkr.ecr.us-east-2.amazonaws.com/tutoring-platform-api:latest
-   docker push 971422717446.dkr.ecr.us-east-2.amazonaws.com/tutoring-platform-api:latest
-   ```
-3. Force new deployment:
-   ```bash
-   aws ecs update-service --cluster tutoring-platform-cluster --service tutoring-platform-api-service --force-new-deployment --region us-east-2
+   npm install
+   # Create a .env.local file with your environment variables (see YOUR_ENV_VARIABLES.md)
+   npx prisma migrate dev --name init
+   npm start
    ```
 
-### Frontend (Vercel)
-
-1. Make your code changes
-2. Deploy:
+3. **Frontend Setup:**
    ```bash
-   cd tutoring-platform
-   vercel --prod
+   cd ../tutoring-platform
+   npm install
+   # Environment variables are baked into the build from Netlify
+   npm start
    ```
+
+---
+
+## Deployment Notes
+
+### Frontend Deployment (Netlify)
+
+The frontend is deployed to Netlify. To redeploy:
+
+```bash
+cd tutoring-platform
+netlify deploy --prod
+```
+
+Or let Netlify auto-deploy by pushing to your GitHub repository (if connected).
+
+### Backend Deployment (Railway)
+
+The backend is deployed to Railway. To redeploy:
+
+```bash
+cd backend
+git push origin main
+```
+
+Railway will automatically redeploy when you push to the `main` branch.
+
+Alternatively, use Railway CLI:
+```bash
+railway up
+```
 
 ---
 
 ## Access Your Application
 
-1. **Frontend**: https://tutoring-platform-hwqkcnwh8-natalyscst-gmailcoms-projects.vercel.app
-2. **Backend API**: http://18.223.116.242:5000
-3. **Health Check**: http://18.223.116.242:5000/health
+1. **Frontend**: https://soft-rugelach-38ffa4.netlify.app
+2. **Backend API**: https://tutoringplatform-production-ccdc.up.railway.app/api
+3. **Health Check**: https://tutoringplatform-production-ccdc.up.railway.app/health
+
+---
+
+## Testing the Application
+
+### 1. Register a New Account
+
+- Go to https://soft-rugelach-38ffa4.netlify.app
+- Click "Sign Up"
+- Choose your role (Student or Tutor)
+- Fill in your details
+- Click "Sign Up"
+
+### 2. Sign In
+
+- Go to https://soft-rugelach-38ffa4.netlify.app/login
+- Enter your email and password
+- Click "Sign In"
+
+### 3. View Dashboard
+
+- After signing in, you'll be redirected to your dashboard
+- You can see your profile information
+- Next steps will be shown based on your role
+
+---
+
+## Troubleshooting
+
+### CORS Errors
+
+If you see CORS errors in the browser console, verify that:
+- Railway's `FRONTEND_URL` matches your Netlify URL exactly
+- Netlify's `REACT_APP_API_URL` points to Railway with `/api` path
+
+### Authentication Errors
+
+If Firebase authentication fails:
+- Check that all Firebase environment variables are correctly set
+- Verify Firebase project is active and configured correctly
+- Check browser console for detailed error messages
+
+### API Connection Errors
+
+If the frontend can't connect to the backend:
+- Check that Railway backend is running (visit health check URL)
+- Verify `REACT_APP_API_URL` in Netlify includes `/api` path
+- Check Railway logs for backend errors
 
 ---
 
 ## Next Steps
 
-✅ Basic authentication UI complete
-⏭️ Create tutor availability management
-⏭️ Build session booking system
-⏭️ Integrate Jitsi Meet for video conferencing
-⏭️ Implement real-time chat with Socket.io
-⏭️ Build collaborative notes feature
-⏭️ Implement AI report generation
+Your MVP is now deployed and working! 🎉
+
+### For Students:
+1. Browse available tutors (coming soon)
+2. Book sessions
+3. Join video calls
+4. Collaborate with notes
+
+### For Tutors:
+1. Set up availability
+2. Accept session requests
+3. Conduct video sessions
+4. Review AI-generated session reports
 
 ---
 
-## Notes
+## Deployment History
 
-- **Backend IP may change** if the ECS task restarts. Consider setting up an Application Load Balancer for a stable endpoint.
-- All Firebase credentials are configured and working
-- Database is connected and healthy
-- Logs are available in CloudWatch at `/ecs/tutoring-platform-api`
+- **Frontend**: Netlify (soft-rugelach-38ffa4.netlify.app)
+- **Backend**: Railway.app (tutoringplatform-production-ccdc.up.railway.app)
+- **Database**: Vercel Postgres (Neon-powered)
+- **Auth**: Firebase Authentication
+- **Status**: ✅ All services running
 
-**Deployment Date**: November 8, 2025  
-**Deployed By**: AWS ECS Fargate + Vercel
+---
 
+**Built with ❤️ using React, Node.js, Express, PostgreSQL, Prisma, and Firebase**

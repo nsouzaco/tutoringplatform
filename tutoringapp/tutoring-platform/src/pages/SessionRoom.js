@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { sessionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import ChatBox from '../components/session/ChatBox';
 
 const SessionRoom = () => {
   const { id } = useParams();
@@ -179,9 +180,21 @@ const SessionRoom = () => {
         </div>
       </div>
 
-      {/* Jitsi Video Container */}
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
-        <div ref={jitsiContainerRef} />
+      {/* Main Content: Video + Chat */}
+      <div className="grid lg:grid-cols-3 gap-6 mb-6">
+        {/* Jitsi Video Container */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            <div ref={jitsiContainerRef} />
+          </div>
+        </div>
+
+        {/* Chat Box */}
+        <div className="lg:col-span-1">
+          <div style={{ height: '600px' }}>
+            <ChatBox sessionId={session.id} />
+          </div>
+        </div>
       </div>
 
       {/* Info Section */}
@@ -204,6 +217,12 @@ const SessionRoom = () => {
               <span className="font-medium">Email:</span> {otherUser.email}
             </p>
           </div>
+        </div>
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800">
+            💡 <strong>Note:</strong> All chat messages are automatically saved to the database. 
+            After the session, tutors can generate an AI analysis report based on the conversation.
+          </p>
         </div>
       </div>
     </div>

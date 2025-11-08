@@ -129,7 +129,8 @@ const Dashboard = () => {
             {sessions.map((session) => {
               const otherUser = isTutor ? session.student : session.tutor;
               const isLive = session.status === 'LIVE';
-              const canJoin = new Date(session.startTime) <= new Date();
+              // Show join button for all sessions except cancelled/completed
+              const showJoinButton = session.status !== 'CANCELLED' && session.status !== 'COMPLETED';
 
               return (
                 <div
@@ -163,7 +164,7 @@ const Dashboard = () => {
                     </div>
 
                     <div className="flex space-x-2">
-                      {canJoin && session.status !== 'CANCELLED' && session.status !== 'COMPLETED' && (
+                      {showJoinButton && (
                         <Link
                           to={`/session/${session.id}`}
                           className={`px-4 py-2 rounded-md font-medium ${
@@ -175,7 +176,7 @@ const Dashboard = () => {
                           {isLive ? 'Join Now' : 'Join Session'}
                         </Link>
                       )}
-                      {session.status === 'SCHEDULED' && !isLive && (
+                      {session.status === 'SCHEDULED' && (
                         <button
                           onClick={() => handleCancelSession(session.id)}
                           className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium"
