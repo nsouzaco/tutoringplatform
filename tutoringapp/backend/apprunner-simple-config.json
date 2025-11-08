@@ -1,0 +1,36 @@
+{
+  "ServiceName": "tutoring-platform-api",
+  "SourceConfiguration": {
+    "ImageRepository": {
+      "ImageIdentifier": "971422717446.dkr.ecr.us-east-2.amazonaws.com/tutoring-platform-api:latest",
+      "ImageRepositoryType": "ECR",
+      "ImageConfiguration": {
+        "Port": "5000",
+        "RuntimeEnvironmentVariables": {
+          "PORT": "5000",
+          "NODE_ENV": "production",
+          "DATABASE_URL": "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19OZjNPaGNRS3R0R1J2UGNmRUhWRHAiLCJhcGlfa2V5IjoiMDFLOUc4NVNWS1JWODc0RjFRM0I0NE1FOVQiLCJ0ZW5hbnRfaWQiOiI2NzZiMDcwMzhlNGJlNmE4NDA1ZTJhNmE3YmIxZmFjMDhjZWJmYzI4ZmM0NTg4ODBhMjY0YjYwYjAxOTc0MWU3IiwiaW50ZXJuYWxfc2VjcmV0IjoiYzM0ZGQyNmUtZjc1Ni00NzEwLTg3YWItZjAxYWFkMTliZGViIn0.tARYHRt0fxVWBvkBE_8Lw7Kw4A157lSVMEbmKuqCVVg",
+          "DIRECT_URL": "postgres://676b07038e4be6a8405e2a6a7bb1fac08cebfc28fc458880a264b60b019741e7:sk_Nf3OhcQKttGRvPcfEHVDp@db.prisma.io:5432/postgres?sslmode=require",
+          "FRONTEND_URL": "https://tutoring-platform-f4qpia3rj-natalyscst-gmailcoms-projects.vercel.app"
+        }
+      }
+    },
+    "AutoDeploymentsEnabled": false,
+    "AuthenticationConfiguration": {
+      "AccessRoleArn": "arn:aws:iam::971422717446:role/service-role/TutoringAppRole"
+    }
+  },
+  "InstanceConfiguration": {
+    "Cpu": "1 vCPU",
+    "Memory": "2 GB"
+  },
+  "HealthCheckConfiguration": {
+    "Protocol": "HTTP",
+    "Path": "/health",
+    "Interval": 20,
+    "Timeout": 10,
+    "HealthyThreshold": 1,
+    "UnhealthyThreshold": 3
+  }
+}
+

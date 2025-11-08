@@ -1,0 +1,65 @@
+{
+  "family": "tutoring-platform-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::971422717446:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "tutoring-platform-api",
+      "image": "971422717446.dkr.ecr.us-east-2.amazonaws.com/tutoring-platform-api:latest",
+      "portMappings": [
+        {
+          "containerPort": 5000,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "environment": [
+        {
+          "name": "PORT",
+          "value": "5000"
+        },
+        {
+          "name": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "name": "DATABASE_URL",
+          "value": "prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19OZjNPaGNRS3R0R1J2UGNmRUhWRHAiLCJhcGlfa2V5IjoiMDFLOUc4NVNWS1JWODc0RjFRM0I0NE1FOVQiLCJ0ZW5hbnRfaWQiOiI2NzZiMDcwMzhlNGJlNmE4NDA1ZTJhNmE3YmIxZmFjMDhjZWJmYzI4ZmM0NTg4ODBhMjY0YjYwYjAxOTc0MWU3IiwiaW50ZXJuYWxfc2VjcmV0IjoiYzM0ZGQyNmUtZjc1Ni00NzEwLTg3YWItZjAxYWFkMTliZGViIn0.tARYHRt0fxVWBvkBE_8Lw7Kw4A157lSVMEbmKuqCVVg"
+        },
+        {
+          "name": "DIRECT_URL",
+          "value": "postgres://676b07038e4be6a8405e2a6a7bb1fac08cebfc28fc458880a264b60b019741e7:sk_Nf3OhcQKttGRvPcfEHVDp@db.prisma.io:5432/postgres?sslmode=require"
+        },
+        {
+          "name": "FIREBASE_PROJECT_ID",
+          "value": "tutoring-f5d07"
+        },
+        {
+          "name": "FIREBASE_CLIENT_EMAIL",
+          "value": "firebase-adminsdk-fbsvc@tutoring-f5d07.iam.gserviceaccount.com"
+        },
+        {
+          "name": "FIREBASE_PRIVATE_KEY",
+          "value": "-----BEGIN PRIVATE KEY-----\\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC+aIU71mVG7SU7\\ncr6kxzDAsVMnbt+P1ZERNbkC9B8ZIe5M34k4nWuHE2mTg/9Cp1EnxMEnIB0cLw/t\\nipgSkiP2daJ9CoDikNuqoToTQKgjtmpZCdVOAfejucmTWnKePZIH3CxZkB75H4BP\\nWUEjoV5AgOUC9pZj5cqBgAl24sH0OzoMPYFe1heWYCutjOGVnsByccf5/wxPTJUA\\nkBNvdjxYOdw1XuSTTP8Oj9gMGSBF+ViXzbpkNA96htSunSEX8Sin9J2RDzd/6fGr\\nDCZyGue/7fdrucRykdDXdpk0SrBYruHulrQ9RwLMl8YiShRsUyPGr0A9vuhpGLfs\\nTGeLd/pfAgMBAAECggEANlWiK3SfOvGiLcgtId1biqkvZvHLJwLVHjmb3X1nQGc/\\n1rz1LewyCn4eIwPIPC99x6DsU2tlEy1U2L6zbZ05WPOxlggAxmZ64MKYTXUmZeaA\\ni370WQnTrmtuW7e0PHaqbMbF+xrW09VK6pm4LmA2gqalc0aFnOUud+zfBodnvHcJ\\nOL3Puwr3augkpLKqthLcxquvpgHZNs3WbkDmaWd9m7CKfNLTNApAWGNx2Qh2uv7y\\n8I87YVsExtw28W1SHFNMCXx9kuIZUfyS6paZp7SJ9ic72qgq5IoGtNj4xY8d95Ek\\nJKeNUczCfOTD8go7Ldpp5r08Lm/TJHk0oPI2GS1IeQKBgQD6JkRE1xAxEXtfj9GI\\n0plMbMgQ+2eajmgxW+6iAEougcuO9nihdlHAGOUkZQw3tLrmnTW8weBDnM1DjCKt\\nhSqzIHSCDAqH5x3Y6GDkYe28IfGrHcOfek4j1nsfo1D0YKs3Hli14GW+mu4YIeDE\\nfUhOmuKP6XfRkyloYEcHNN1wuQKBgQDC3I/m5wYBYM8z4QScMHK2QvDtFvplsQ22\\nWybbsF92QnzdOAmA4rBEdemjrZbhamEO302IG7MvPb6ia+9y2IjJTq9W9TV4RcwJ\\nVLwF/+lcZPLfjkqcMGVqSWEv+2gx+FdkPLIFDUIfvSCIzhwTzgfYVoNvQCX33F7f\\nYRvmiZNH1wKBgAmx6ftxCmOcddeiT1CqON7JaIef9sf6tPcUxQ7qS/W5ehY0X0CC\\nwXBchqT+dZbDHmtJtId4TCTSsvHnQIDRJHKE038m0FGsF3AMsZSoZvpfpmonYSmR\\nJ+4jpen3/m86P+iG+JEz/T2B67Brv7Zd1KuXPSiut8IbngM5mAcjeWGhAoGAWCob\\nIcndObpnhX2F7HUvMa/P+jWvTVtybNOJHVULnCIxBJZaFmp6fj8rWtcrsQnEqEn4\\ndmCyDenN2wci6791BEAJrTp82tIZow8nkz9agmdaTDPBJjHvcMuKoX8KgbFvOPcN\\nRKPfCyUzFzLKGVvayNM73JYVl7OpaUAys3gDnzkCgYBKAHQAJamfxUto9uXcFQTN\\nvYphQqTwlXeX0SWdbghqvjXMtlWq1gWLkjfmv4CLzlIwrD2X5sp/f5CNdeCtrVFK\\n1Gqn5iSYnvbnXWxMhjQ6faXUOPMw6I+NTnQcqgderdoxWo9hWG1gZyQRLQhoSzzl\\n2euTDbnRUGr68N6UbLQhBw==\\n-----END PRIVATE KEY-----\\n"
+        },
+        {
+          "name": "FRONTEND_URL",
+          "value": "https://tutoring-platform-f4qpia3rj-natalyscst-gmailcoms-projects.vercel.app"
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/tutoring-platform-api",
+          "awslogs-region": "us-east-2",
+          "awslogs-stream-prefix": "ecs",
+          "awslogs-create-group": "true"
+        }
+      }
+    }
+  ]
+}
+
