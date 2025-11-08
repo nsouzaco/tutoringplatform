@@ -51,6 +51,13 @@ app.use('/api/tutors', require('./routes/tutors'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/ratings', require('./routes/ratings'));
+app.use('/api/admin', require('./routes/admin'));
+
+// Development-only cleanup routes
+if (process.env.NODE_ENV === 'development') {
+  app.use('/api/cleanup', require('./routes/cleanup'));
+  console.log('⚠️  Cleanup routes enabled (development mode only)');
+}
 
 // 404 handler
 app.use(notFound);

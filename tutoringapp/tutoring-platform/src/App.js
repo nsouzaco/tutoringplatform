@@ -13,6 +13,8 @@ import Availability from './pages/Availability';
 import Tutors from './pages/Tutors';
 import SessionRoom from './pages/SessionRoom';
 import PastSessions from './pages/PastSessions';
+import Admin from './pages/Admin';
+import AdminTutorDetail from './pages/AdminTutorDetail';
 
 function App() {
   return (
@@ -65,6 +67,24 @@ function App() {
               element={
                 <PrivateRoute>
                   <PastSessions />
+                </PrivateRoute>
+              } 
+            />
+
+            <Route 
+              path="/admin" 
+              element={
+                <PrivateRoute requireRole="ADMIN">
+                  <Admin />
+                </PrivateRoute>
+              } 
+            />
+
+            <Route 
+              path="/admin/tutor/:tutorId" 
+              element={
+                <PrivateRoute requireRole="ADMIN">
+                  <AdminTutorDetail />
                 </PrivateRoute>
               } 
             />

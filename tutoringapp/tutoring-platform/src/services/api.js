@@ -86,5 +86,13 @@ export const ratingsAPI = {
   getRating: (sessionId) => api.get(`/ratings/session/${sessionId}`),
 };
 
+// Admin API
+export const adminAPI = {
+  getStats: () => api.get('/admin/stats'),
+  getTutors: () => api.get('/admin/tutors'),
+  getTutorDetail: (tutorId) => api.get(`/admin/tutors/${tutorId}`),
+  generateTutorSummary: (tutorId) => api.post(`/admin/tutors/${tutorId}/ai-summary`),
+};
+
 export default api;
 

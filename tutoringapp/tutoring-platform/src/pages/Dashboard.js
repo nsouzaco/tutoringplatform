@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { sessionsAPI } from '../services/api';
 import { motion } from 'framer-motion';
@@ -7,13 +7,20 @@ import { Calendar, User, Mail, Globe, BookOpen, ArrowRight, AlertCircle, Video, 
 
 const Dashboard = () => {
   const { userData } = useAuth();
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Redirect admins to admin dashboard
+    if (userData && userData.role === 'ADMIN') {
+      navigate('/admin');
+      return;
+    }
+    
     fetchSessions();
-  }, []);
+  }, [userData, navigate]);
 
   const fetchSessions = async () => {
     try {
