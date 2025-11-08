@@ -50,5 +50,28 @@ export const authAPI = {
   updateProfile: (data) => api.put('/auth/profile', data),
 };
 
+// Availability API
+export const availabilityAPI = {
+  getAvailability: () => api.get('/availability'),
+  createAvailability: (data) => api.post('/availability', data),
+  updateAvailability: (id, data) => api.put(`/availability/${id}`, data),
+  deleteAvailability: (id) => api.delete(`/availability/${id}`),
+};
+
+// Tutors API
+export const tutorsAPI = {
+  getTutors: (subject) => api.get('/tutors', { params: { subject } }),
+  getTutorById: (id) => api.get(`/tutors/${id}`),
+};
+
+// Sessions API
+export const sessionsAPI = {
+  getSessions: (params) => api.get('/sessions', { params }),
+  getSessionById: (id) => api.get(`/sessions/${id}`),
+  createSession: (data) => api.post('/sessions', data),
+  updateSessionStatus: (id, status) => api.patch(`/sessions/${id}/status`, { status }),
+  cancelSession: (id) => api.delete(`/sessions/${id}`),
+};
+
 export default api;
 

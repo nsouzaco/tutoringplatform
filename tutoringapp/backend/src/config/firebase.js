@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 // Initialize Firebase Admin SDK
 const initializeFirebase = () => {
   try {
+
     if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_PRIVATE_KEY || !process.env.FIREBASE_CLIENT_EMAIL) {
       console.warn('⚠️ Firebase credentials not found. Auth features will be disabled.');
       return;

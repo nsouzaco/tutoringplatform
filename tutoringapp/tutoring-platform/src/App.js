@@ -9,6 +9,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Availability from './pages/Availability';
+import Tutors from './pages/Tutors';
+import SessionRoom from './pages/SessionRoom';
 
 function App() {
   return (
@@ -25,6 +28,33 @@ function App() {
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              } 
+            />
+
+            <Route 
+              path="/availability" 
+              element={
+                <PrivateRoute requireRole="TUTOR">
+                  <Availability />
+                </PrivateRoute>
+              } 
+            />
+
+            <Route 
+              path="/tutors" 
+              element={
+                <PrivateRoute requireRole="STUDENT">
+                  <Tutors />
+                </PrivateRoute>
+              } 
+            />
+
+            <Route 
+              path="/session/:id" 
+              element={
+                <PrivateRoute>
+                  <SessionRoom />
                 </PrivateRoute>
               } 
             />
