@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 // Get tutor's availability
 const getAvailability = async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
 
     // Get tutor profile
     const tutorProfile = await prisma.tutorProfile.findUnique({
@@ -30,7 +30,7 @@ const getAvailability = async (req, res, next) => {
 // Create availability slot
 const createAvailability = async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { dayOfWeek, startTime, endTime, isRecurring, specificDate } = req.body;
 
     // Validate input
@@ -72,7 +72,7 @@ const createAvailability = async (req, res, next) => {
 // Update availability slot
 const updateAvailability = async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { id } = req.params;
     const { dayOfWeek, startTime, endTime, isRecurring, isEnabled, specificDate } = req.body;
 
@@ -117,7 +117,7 @@ const updateAvailability = async (req, res, next) => {
 // Delete availability slot
 const deleteAvailability = async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { id } = req.params;
 
     // Get tutor profile

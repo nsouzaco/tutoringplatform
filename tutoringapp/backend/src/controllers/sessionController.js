@@ -43,7 +43,8 @@ const checkAvailabilityConflict = async (tutorId, startTime, endTime, excludeSes
 // Get user's sessions
 const getSessions = async (req, res, next) => {
   try {
-    const { userId, role } = req.user;
+    const userId = req.user.id;
+    const role = req.user.role;
     const { status, upcoming } = req.query;
 
     // Build where clause based on user role
@@ -97,7 +98,7 @@ const getSessions = async (req, res, next) => {
 // Get specific session
 const getSessionById = async (req, res, next) => {
   try {
-    const { userId, role } = req.user;
+    const userId = req.user.id;
     const { id } = req.params;
 
     const session = await prisma.session.findUnique({
@@ -144,7 +145,8 @@ const getSessionById = async (req, res, next) => {
 // Create session (book a session)
 const createSession = async (req, res, next) => {
   try {
-    const { userId, role } = req.user;
+    const userId = req.user.id;
+    const role = req.user.role;
     const { tutorId, startTime, duration } = req.body;
 
     // Only students can book sessions
@@ -223,7 +225,7 @@ const createSession = async (req, res, next) => {
 // Update session status
 const updateSessionStatus = async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { id } = req.params;
     const { status } = req.body;
 
@@ -280,7 +282,7 @@ const updateSessionStatus = async (req, res, next) => {
 // Cancel session
 const cancelSession = async (req, res, next) => {
   try {
-    const { userId } = req.user;
+    const userId = req.user.id;
     const { id } = req.params;
 
     // Get session
