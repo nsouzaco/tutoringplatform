@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { auth } from '../config/firebase';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 // Create axios instance
 const api = axios.create({
@@ -78,6 +78,7 @@ export const sessionsAPI = {
 export const reportsAPI = {
   generateReport: (sessionId) => api.post(`/reports/session/${sessionId}`),
   getReport: (sessionId) => api.get(`/reports/session/${sessionId}`),
+  getReportStatus: (sessionId) => api.get(`/reports/session/${sessionId}/status`),
   getTutorReports: () => api.get('/reports'),
 };
 

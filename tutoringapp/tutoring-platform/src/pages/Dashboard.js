@@ -79,12 +79,45 @@ const Dashboard = () => {
     setError('');
 
     try {
-      const data = await reportsAPI.generateReport(sessionId);
-      setSessionReports({ ...sessionReports, [sessionId]: true });
-      setViewingReport(data.report);
+      // Start report generation
+      const response = await reportsAPI.generateReport(sessionId);
+      
+      // If report already exists, show it immediately
+      if (response.status === 'completed' && response.report) {
+        setSessionReports({ ...sessionReports, [sessionId]: true });
+        setViewingReport(response.report);
+        setGeneratingReport(null);
+        return;
+      }
+      
+      // Otherwise, poll for completion
+      const checkStatus = async () => {
+        try {
+          const statusData = await reportsAPI.getReportStatus(sessionId);
+          
+          if (statusData.status === 'completed') {
+            // Report is ready, fetch it
+            const reportData = await reportsAPI.getReport(sessionId);
+            setSessionReports({ ...sessionReports, [sessionId]: true });
+            setViewingReport(reportData.report);
+            setGeneratingReport(null);
+          } else if (statusData.status === 'failed') {
+            setError('Report generation failed. Please try again.');
+            setGeneratingReport(null);
+          } else {
+            // Still processing, check again in 2 seconds
+            setTimeout(checkStatus, 2000);
+          }
+        } catch (err) {
+          setError(`Failed to check report status: ${err.message}`);
+          setGeneratingReport(null);
+        }
+      };
+      
+      // Start polling
+      setTimeout(checkStatus, 2000);
     } catch (err) {
       setError(`Failed to generate report: ${err.message}`);
-    } finally {
       setGeneratingReport(null);
     }
   };
@@ -122,7 +155,7 @@ const Dashboard = () => {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-4xl font-bold mb-2 text-gray-900">
-            Welcome back, <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">{userData.name}</span>!
+            Welcome back, {userData.name}!
           </h1>
           <p className="text-gray-600 mb-10">Here's what's happening with your learning journey</p>
         </motion.div>

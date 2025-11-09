@@ -6,7 +6,30 @@ const prisma = new PrismaClient();
 const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
 // Create queue with Upstash Redis
-const reportQueue = new Queue('report-generation', process.env.REDIS_URL || 'redis://localhost:6379', {
+// Bull uses ioredis internally, so we need to configure TLS properly for Upstash
+const redisConfig = process.env.REDIS_URL 
+  ? {
+      redis: {
+        port: 6379,
+        host: process.env.REDIS_URL.match(/@([^:]+):/)?.[1],
+        password: process.env.REDIS_URL.match(/:\/\/default:([^@]+)@/)?.[1],
+        tls: {
+          rejectUnauthorized: false // Required for Upstash TLS
+        },
+        maxRetriesPerRequest: null, // Required for Bull to work properly
+        enableReadyCheck: false,
+        retryStrategy: (times) => {
+          if (times > 10) {
+            console.error('❌ Redis connection failed after 10 retries');
+            return null;
+          }
+          return Math.min(times * 100, 3000);
+        }
+      }
+    }
+  : 'redis://localhost:6379';
+
+const reportQueue = new Queue('report-generation', redisConfig, {
   defaultJobOptions: {
     attempts: 3,
     backoff: {
@@ -46,7 +69,7 @@ reportQueue.process(5, async (job) => {
       student: true,
       tutor: { include: { tutorProfile: true } },
       chatMessages: { orderBy: { timestamp: 'asc' } },
-      sessionNotes: true,
+      sessionNote: true,
       rating: true,
     }
   });
@@ -76,10 +99,8 @@ reportQueue.process(5, async (job) => {
     .map(msg => `${msg.senderName}: ${msg.message}`)
     .join('\n');
 
-  // Prepare notes
-  const notes = session.sessionNotes
-    .map(note => note.content)
-    .join('\n\n');
+  // Prepare notes (sessionNote is a single object, not an array)
+  const notes = session.sessionNote ? session.sessionNote.content : '';
 
   job.progress(50); // Update progress
 
@@ -131,18 +152,20 @@ Generate a JSON report with this structure:
     throw new Error('Failed to parse AI report response');
   }
 
-  // Save report to database
+  // Save report to database (all data goes into the reportData JSON field)
   const report = await prisma.sessionReport.create({
     data: {
       sessionId,
       tutorId: session.tutor.tutorProfile.id,
-      summary: reportData.summary || 'No summary available',
-      topicsDiscussed: reportData.topicsDiscussed || [],
-      studentProgress: reportData.studentProgress || 'No progress assessment available',
-      strengths: reportData.strengths || [],
-      areasForImprovement: reportData.areasForImprovement || [],
-      nextSteps: reportData.nextSteps || [],
-      tutorNotes: reportData.tutorNotes || notes || 'No notes available',
+      reportData: {
+        summary: reportData.summary || 'No summary available',
+        topicsDiscussed: reportData.topicsDiscussed || [],
+        studentProgress: reportData.studentProgress || 'No progress assessment available',
+        strengths: reportData.strengths || [],
+        areasForImprovement: reportData.areasForImprovement || [],
+        nextSteps: reportData.nextSteps || [],
+        tutorNotes: reportData.tutorNotes || notes || 'No notes available',
+      },
       generatedAt: new Date(),
     }
   });
