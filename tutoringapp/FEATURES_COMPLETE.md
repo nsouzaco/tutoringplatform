@@ -289,3 +289,5 @@ Your tutoring platform MVP is fully functional with:
 
 **Built with ❤️ using React, Node.js, Express, PostgreSQL, Prisma, Firebase, and Jitsi Meet**
 
+
+

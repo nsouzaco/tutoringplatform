@@ -34,3 +34,5 @@ When deploying to App Runner, you'll add these same variables in the AWS Console
 
 Your `.gitignore` already has `.env` listed ✅
 
+
+
