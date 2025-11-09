@@ -1,0 +1,184 @@
+const Queue = require('bull');
+const OpenAI = require('openai');
+const { PrismaClient } = require('@prisma/client');
+
+const prisma = new PrismaClient();
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
+
+// Create queue with Upstash Redis
+const reportQueue = new Queue('report-generation', process.env.REDIS_URL || 'redis://localhost:6379', {
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000 // Start with 2 seconds, exponential backoff
+    },
+    timeout: 300000, // 5 minutes max per job
+    removeOnComplete: 100, // Keep last 100 completed jobs
+    removeOnFail: false, // Keep failed jobs for debugging
+  },
+  limiter: {
+    max: 10, // Max 10 jobs per interval
+    duration: 60000, // 1 minute
+  },
+  settings: {
+    maxStalledCount: 2, // Retry stalled jobs twice
+    stalledInterval: 30000, // Check for stalled jobs every 30s
+    lockDuration: 300000, // 5 minutes lock duration
+  }
+});
+
+// Process reports with concurrency of 5
+reportQueue.process(5, async (job) => {
+  const { sessionId } = job.data;
+  
+  console.log(`[Queue] Processing report for session ${sessionId}`);
+  job.progress(10); // Update progress
+
+  if (!openai) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  // Fetch session data
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+    include: {
+      student: true,
+      tutor: { include: { tutorProfile: true } },
+      chatMessages: { orderBy: { timestamp: 'asc' } },
+      sessionNotes: true,
+      rating: true,
+    }
+  });
+
+  if (!session) {
+    throw new Error(`Session ${sessionId} not found`);
+  }
+
+  if (session.status !== 'COMPLETED') {
+    throw new Error(`Session ${sessionId} is not completed yet`);
+  }
+
+  job.progress(30); // Update progress
+
+  // Check if report already exists
+  const existingReport = await prisma.sessionReport.findUnique({
+    where: { sessionId }
+  });
+
+  if (existingReport) {
+    console.log(`[Queue] Report already exists for session ${sessionId}`);
+    return existingReport;
+  }
+
+  // Prepare chat history
+  const chatHistory = session.chatMessages
+    .map(msg => `${msg.senderName}: ${msg.message}`)
+    .join('\n');
+
+  // Prepare notes
+  const notes = session.sessionNotes
+    .map(note => note.content)
+    .join('\n\n');
+
+  job.progress(50); // Update progress
+
+  // Generate report with GPT-4o (faster and cheaper than GPT-4)
+  const prompt = `You are an AI assistant analyzing a tutoring session. Generate a comprehensive report.
+
+Session Details:
+- Student: ${session.student.name}
+- Tutor: ${session.tutor.name}
+- Duration: ${Math.round((new Date(session.endTime) - new Date(session.startTime)) / 60000)} minutes
+- Rating: ${session.rating ? `${session.rating.overallRating}/5 (Punctuality: ${session.rating.punctuality}/5, Friendliness: ${session.rating.friendliness}/5, Helpfulness: ${session.rating.helpfulness}/5)` : 'Not rated yet'}
+${session.rating?.comment ? `- Student Feedback: ${session.rating.comment}` : ''}
+
+Chat Conversation:
+${chatHistory || 'No chat messages recorded'}
+
+Tutor Notes:
+${notes || 'No notes recorded'}
+
+Generate a JSON report with this structure:
+{
+  "summary": "2-3 sentence overview of the session",
+  "topicsDiscussed": ["topic1", "topic2", "topic3"],
+  "studentProgress": "Assessment of student understanding and progress",
+  "strengths": ["strength1", "strength2"],
+  "areasForImprovement": ["area1", "area2"],
+  "nextSteps": ["recommended next step 1", "recommended next step 2"],
+  "tutorNotes": "Key observations from the tutor perspective"
+}`;
+
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o', // Fast and cost-effective
+    messages: [
+      { role: 'system', content: 'You are an educational AI assistant that analyzes tutoring sessions and provides constructive feedback.' },
+      { role: 'user', content: prompt }
+    ],
+    temperature: 0.7,
+    max_tokens: 1500,
+    response_format: { type: "json_object" }
+  });
+
+  job.progress(80); // Update progress
+
+  let reportData;
+  try {
+    reportData = JSON.parse(completion.choices[0].message.content);
+  } catch (error) {
+    console.error('[Queue] Failed to parse OpenAI response:', completion.choices[0].message.content);
+    throw new Error('Failed to parse AI report response');
+  }
+
+  // Save report to database
+  const report = await prisma.sessionReport.create({
+    data: {
+      sessionId,
+      tutorId: session.tutor.tutorProfile.id,
+      summary: reportData.summary || 'No summary available',
+      topicsDiscussed: reportData.topicsDiscussed || [],
+      studentProgress: reportData.studentProgress || 'No progress assessment available',
+      strengths: reportData.strengths || [],
+      areasForImprovement: reportData.areasForImprovement || [],
+      nextSteps: reportData.nextSteps || [],
+      tutorNotes: reportData.tutorNotes || notes || 'No notes available',
+      generatedAt: new Date(),
+    }
+  });
+
+  job.progress(100); // Complete
+
+  console.log(`[Queue] ✅ Report generated for session ${sessionId}`);
+  return report;
+});
+
+// Event handlers for monitoring
+reportQueue.on('completed', (job, result) => {
+  console.log(`✅ Report ${job.id} completed for session ${job.data.sessionId}`);
+});
+
+reportQueue.on('failed', (job, err) => {
+  console.error(`❌ Report ${job.id} failed for session ${job.data.sessionId}:`, err.message);
+});
+
+reportQueue.on('stalled', (job) => {
+  console.warn(`⚠️  Report ${job.id} stalled for session ${job.data.sessionId}`);
+});
+
+reportQueue.on('progress', (job, progress) => {
+  console.log(`📊 Report ${job.id} progress: ${progress}%`);
+});
+
+reportQueue.on('error', (error) => {
+  console.error('Queue error:', error);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('Closing report queue...');
+  await reportQueue.close();
+});
+
+module.exports = reportQueue;
+

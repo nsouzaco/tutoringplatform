@@ -1,17 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-const OpenAI = require('openai');
-
-// Initialize OpenAI (optional - only if API key is provided)
-let openai = null;
-if (process.env.OPENAI_API_KEY) {
-  openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  console.log('✅ OpenAI initialized for AI-powered reports');
-} else {
-  console.log('⚠️ OpenAI API key not found - AI report generation will be disabled');
-}
+const reportQueue = require('../queues/reportQueue');
 
 // Generate AI session report
 const generateReport = async (req, res, next) => {
@@ -79,111 +68,51 @@ const generateReport = async (req, res, next) => {
     });
 
     if (existingReport) {
-      return res.json({ report: existingReport });
+      return res.json({ 
+        success: true,
+        status: 'completed',
+        report: existingReport 
+      });
     }
 
-    // Check if OpenAI is available
-    if (!openai) {
+    // Check if OpenAI is configured
+    if (!process.env.OPENAI_API_KEY) {
       return res.status(503).json({ 
         error: 'AI report generation is not available. Please configure OPENAI_API_KEY.' 
       });
     }
 
-    // Prepare data for GPT-4
-    const chatHistory = session.chatMessages
-      .map(msg => `${msg.sender.name} (${msg.sender.role}): ${msg.message}`)
-      .join('\n');
-
-    const notes = session.sessionNote?.content || 'No notes taken';
-
-    // Format rating information
-    let ratingInfo = 'No student rating yet';
-    if (session.rating) {
-      const stars = (count) => '⭐'.repeat(count);
-      ratingInfo = `
-- Punctuality: ${session.rating.punctuality}/5 ${stars(session.rating.punctuality)}
-- Friendliness: ${session.rating.friendliness}/5 ${stars(session.rating.friendliness)}
-- Helpfulness: ${session.rating.helpfulness}/5 ${stars(session.rating.helpfulness)}
-- Overall Rating: ${session.rating.overallRating.toFixed(1)}/5
-${session.rating.comment ? `- Student Comment: "${session.rating.comment}"` : ''}`;
+    // Check if job already exists in queue
+    const existingJob = await reportQueue.getJob(`report-${id}`);
+    if (existingJob) {
+      const state = await existingJob.getState();
+      const progress = existingJob.progress();
+      
+      return res.json({
+        success: true,
+        status: state,
+        jobId: existingJob.id,
+        progress,
+        message: state === 'active' ? 'Report is being generated...' : 'Report generation queued'
+      });
     }
 
-    const prompt = `You are an educational AI assistant analyzing a tutoring session. Generate a comprehensive report for the tutor.
+    // Add to queue (returns immediately!)
+    const job = await reportQueue.add(
+      { sessionId: id },
+      { 
+        jobId: `report-${id}`, // Prevent duplicates
+        priority: 1 // Higher priority for user-initiated requests
+      }
+    );
 
-**Session Details:**
-- Student: ${session.student.name}
-- Tutor: ${session.tutor.name}
-- Duration: ${session.duration} minutes
-- Date: ${new Date(session.startTime).toLocaleString()}
-${session.isFirstSession ? '- ⚠️ This was a FIRST SESSION between this student and tutor' : ''}
-
-**Student Rating:**
-${ratingInfo}
-
-**Chat Messages:**
-${chatHistory || 'No chat messages'}
-
-**Session Notes:**
-${notes}
-
-**Generate a structured report in JSON format with these sections:**
-1. **summary**: Brief overview of the session (2-3 sentences)
-2. **topicsCovered**: Array of topics/subjects discussed
-3. **studentProgress**: Assessment of student understanding and progress
-4. **strengths**: What the student did well
-5. **areasForImprovement**: Topics that need more work
-6. **recommendations**: Specific action items for next session
-7. **nextSteps**: Suggested topics or exercises for future sessions
-
-Return ONLY valid JSON, no markdown formatting.`;
-
-    // Call GPT-4
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert educational analyst. Provide insightful, actionable feedback for tutors.',
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      temperature: 0.7,
-      max_tokens: 1500,
+    res.json({ 
+      success: true,
+      status: 'queued',
+      jobId: job.id,
+      message: 'Report generation started. Check back in 30-60 seconds.',
+      statusUrl: `/api/reports/session/${id}/status`
     });
-
-    const reportText = completion.choices[0].message.content;
-    let reportData;
-
-    try {
-      // Parse GPT-4 response
-      reportData = JSON.parse(reportText);
-    } catch (parseError) {
-      console.error('Failed to parse GPT-4 response:', reportText);
-      return res.status(500).json({ error: 'Failed to generate report' });
-    }
-
-    // Get tutor profile
-    const tutorProfile = await prisma.tutorProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!tutorProfile) {
-      return res.status(404).json({ error: 'Tutor profile not found' });
-    }
-
-    // Save report to database
-    const report = await prisma.sessionReport.create({
-      data: {
-        sessionId: id,
-        tutorId: tutorProfile.id,
-        reportData,
-      },
-    });
-
-    res.status(201).json({ report });
   } catch (error) {
     console.error('Error generating report:', error);
     next(error);
@@ -288,9 +217,77 @@ const getTutorReports = async (req, res, next) => {
   }
 };
 
+// Get report generation status
+const getReportStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params; // session ID
+    const userId = req.user.id;
+    
+    // Verify access to session
+    const session = await prisma.session.findUnique({
+      where: { id },
+      select: {
+        tutorId: true,
+        studentId: true,
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // Only tutor and student can check status
+    if (session.tutorId !== userId && session.studentId !== userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+    
+    // Check database first
+    const report = await prisma.sessionReport.findUnique({
+      where: { sessionId: id }
+    });
+
+    if (report) {
+      return res.json({ 
+        success: true,
+        status: 'completed',
+        report 
+      });
+    }
+
+    // Check queue status
+    const job = await reportQueue.getJob(`report-${id}`);
+    
+    if (!job) {
+      return res.json({ 
+        success: true,
+        status: 'not_started',
+        message: 'No report generation in progress'
+      });
+    }
+
+    const state = await job.getState();
+    const progress = job.progress();
+    const failedReason = state === 'failed' ? job.failedReason : null;
+
+    res.json({
+      success: true,
+      status: state, // 'waiting', 'active', 'completed', 'failed', 'delayed'
+      progress,
+      jobId: job.id,
+      message: state === 'active' ? 'Report is being generated...' : 
+               state === 'waiting' ? 'Report generation is queued...' :
+               state === 'failed' ? 'Report generation failed' : undefined,
+      error: failedReason
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   generateReport,
   getReport,
   getTutorReports,
+  getReportStatus,
 };
 

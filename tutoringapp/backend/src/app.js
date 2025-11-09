@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const http = require('http');
 const socketIo = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { createClient } = require('redis');
 
 const { initializeFirebase } = require('./config/firebase');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
@@ -21,6 +23,30 @@ const io = socketIo(server, {
     methods: ['GET', 'POST'],
   },
 });
+
+// Set up Redis adapter for Socket.io if Redis URL is configured
+if (process.env.REDIS_URL) {
+  (async () => {
+    try {
+      const pubClient = createClient({ url: process.env.REDIS_URL });
+      const subClient = pubClient.duplicate();
+
+      await Promise.all([
+        pubClient.connect(),
+        subClient.connect()
+      ]);
+
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log('✅ Socket.io Redis adapter initialized - ready for horizontal scaling');
+    } catch (error) {
+      console.error('❌ Failed to initialize Socket.io Redis adapter:', error.message);
+      console.log('⚠️  Socket.io will run without Redis adapter (single server mode)');
+    }
+  })();
+} else {
+  console.log('⚠️  REDIS_URL not configured - Socket.io running in single server mode');
+  console.log('💡 Add REDIS_URL to enable horizontal scaling');
+}
 
 // Make io accessible to routes
 app.set('io', io);
@@ -53,10 +79,15 @@ app.use('/api/reports', require('./routes/reports'));
 app.use('/api/ratings', require('./routes/ratings'));
 app.use('/api/admin', require('./routes/admin'));
 
-// Development-only cleanup routes
+// Development-only routes
 if (process.env.NODE_ENV === 'development') {
   app.use('/api/cleanup', require('./routes/cleanup'));
   console.log('⚠️  Cleanup routes enabled (development mode only)');
+  
+  // Bull Board dashboard for queue monitoring
+  const queueDashboard = require('./routes/admin-queue');
+  app.use('/admin/queues', queueDashboard);
+  console.log('📊 Queue dashboard available at http://localhost:5000/admin/queues');
 }
 
 // 404 handler
