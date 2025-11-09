@@ -7,6 +7,7 @@ const {
   createSession,
   updateSessionStatus,
   cancelSession,
+  getMeetingToken,
 } = require('../controllers/sessionController');
 
 // All routes require authentication
@@ -23,6 +24,9 @@ router.post('/', createSession);
 
 // PATCH /api/sessions/:id/status - Update session status
 router.patch('/:id/status', updateSessionStatus);
+
+// GET /api/sessions/:id/token - Get Daily.co meeting token
+router.get('/:id/token', getMeetingToken);
 
 // DELETE /api/sessions/:id - Cancel session
 router.delete('/:id', cancelSession);

@@ -4,6 +4,7 @@ import { sessionsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import ChatBox from '../components/session/ChatBox';
 import RatingModal from '../components/session/RatingModal';
+import DailyIframe from '@daily-co/daily-js';
 
 const SessionRoom = () => {
   const { id } = useParams();
@@ -13,26 +14,52 @@ const SessionRoom = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const jitsiContainerRef = useRef(null);
-  const jitsiApiRef = useRef(null);
+  const [dailyToken, setDailyToken] = useState(null);
+  const [dailyRoomUrl, setDailyRoomUrl] = useState(null);
+  const dailyCallRef = useRef(null);
+  const dailyContainerRef = useRef(null);
+  const isInitializingRef = useRef(false);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
     fetchSession();
   }, [id]);
 
   useEffect(() => {
-    if (session && jitsiContainerRef.current && !jitsiApiRef.current) {
-      initializeJitsi();
+    // Reset initialization flag when session ID changes
+    if (session?.id) {
+      hasInitializedRef.current = false;
+    }
+  }, [session?.id]);
+
+  useEffect(() => {
+    // Wait a bit for the container to be rendered
+    if (session && dailyRoomUrl && dailyToken && !dailyCallRef.current && !isInitializingRef.current && !hasInitializedRef.current) {
+      // Small delay to ensure container is fully rendered
+      const timer = setTimeout(() => {
+        if (dailyContainerRef.current && !dailyCallRef.current && !isInitializingRef.current) {
+          initializeDaily();
+        }
+      }, 200);
+      
+      return () => clearTimeout(timer);
     }
 
-    // Cleanup on unmount only
+    // Cleanup on unmount or when session changes
     return () => {
-      if (jitsiApiRef.current) {
-        jitsiApiRef.current.dispose();
-        jitsiApiRef.current = null;
+      if (dailyCallRef.current) {
+        try {
+          dailyCallRef.current.leave();
+          dailyCallRef.current.destroy();
+        } catch (err) {
+          console.warn('Error cleaning up Daily.co call:', err);
+        }
+        dailyCallRef.current = null;
+        hasInitializedRef.current = false;
+        isInitializingRef.current = false;
       }
     };
-  }, [session?.id]); // Only re-run if session ID changes, not on every session state update
+  }, [session?.id, dailyRoomUrl, dailyToken]);
 
   const fetchSession = async () => {
     try {
@@ -53,6 +80,23 @@ const SessionRoom = () => {
         await sessionsAPI.updateSessionStatus(id, 'LIVE');
         setSession({ ...data.session, status: 'LIVE' });
       }
+
+      // Get Daily.co meeting token
+      if (data.session.dailyRoomUrl) {
+        try {
+          console.log('Fetching Daily.co meeting token...');
+          const tokenData = await sessionsAPI.getMeetingToken(id);
+          console.log('Daily.co token received:', { hasToken: !!tokenData.token, hasUrl: !!tokenData.roomUrl });
+          setDailyToken(tokenData.token);
+          setDailyRoomUrl(tokenData.roomUrl);
+        } catch (err) {
+          console.error('Failed to get meeting token:', err);
+          setError(`Failed to initialize video room: ${err.message}. Please try again.`);
+        }
+      } else {
+        console.warn('Session does not have dailyRoomUrl');
+        setError('Video room not set up for this session.');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -60,84 +104,110 @@ const SessionRoom = () => {
     }
   };
 
-  const initializeJitsi = () => {
-    if (!window.JitsiMeetExternalAPI) {
-      // Load Jitsi script if not already loaded
-      const script = document.createElement('script');
-      script.src = 'https://meet.jit.si/external_api.js';
-      script.async = true;
-      script.onload = () => createJitsiMeet();
-      document.body.appendChild(script);
-    } else {
-      createJitsiMeet();
+  const initializeDaily = async () => {
+    if (!dailyRoomUrl || !dailyToken || !dailyContainerRef.current) {
+      return;
     }
-  };
 
-  const createJitsiMeet = () => {
-    const domain = 'meet.jit.si';
-    const options = {
-      roomName: session.jitsiRoomId,
-      width: '100%',
-      height: 600,
-      parentNode: jitsiContainerRef.current,
-      userInfo: {
-        displayName: userData.name,
-        email: userData.email,
-      },
-      configOverwrite: {
-        startWithAudioMuted: false,
-        startWithVideoMuted: false,
-        enableWelcomePage: false,
-      },
-      interfaceConfigOverwrite: {
-        TOOLBAR_BUTTONS: [
-          'microphone',
-          'camera',
-          'closedcaptions',
-          'desktop',
-          'fullscreen',
-          'fodeviceselection',
-          'hangup',
-          'chat',
-          'settings',
-          'raisehand',
-          'videoquality',
-          'filmstrip',
-          'stats',
-          'tileview',
-        ],
-      },
-    };
+    // Don't initialize if already initialized or initializing
+    if (dailyCallRef.current || isInitializingRef.current || hasInitializedRef.current) {
+      console.log('Skipping Daily.co initialization - already initialized or in progress');
+      return;
+    }
 
-    jitsiApiRef.current = new window.JitsiMeetExternalAPI(domain, options);
+    // Clean up any existing instance first
+    if (dailyCallRef.current) {
+      try {
+        dailyCallRef.current.leave();
+        dailyCallRef.current.destroy();
+      } catch (err) {
+        console.warn('Error cleaning up existing Daily.co instance:', err);
+      }
+      dailyCallRef.current = null;
+    }
 
-    // Handle when user leaves the meeting
-    jitsiApiRef.current.addEventListener('readyToClose', handleEndSession);
+    // Clear the container
+    if (dailyContainerRef.current) {
+      dailyContainerRef.current.innerHTML = '';
+    }
+
+    isInitializingRef.current = true;
+
+    try {
+      console.log('Initializing Daily.co...');
+      
+      // Create Daily call instance
+      const call = DailyIframe.createFrame(dailyContainerRef.current, {
+        showLeaveButton: true,
+        iframeStyle: {
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          border: '0',
+        },
+      });
+
+      // Join the call
+      await call.join({
+        url: dailyRoomUrl,
+        token: dailyToken,
+        userName: userData.name,
+      });
+
+      dailyCallRef.current = call;
+      hasInitializedRef.current = true;
+      isInitializingRef.current = false;
+
+      console.log('Daily.co initialized successfully');
+
+      // Handle when user leaves
+      call.on('left-meeting', handleEndSession);
+
+      // Handle errors
+      call.on('error', (error) => {
+        console.error('Daily.co error:', error);
+        setError('Video connection error. Please try refreshing.');
+      });
+    } catch (err) {
+      console.error('Failed to initialize Daily.co:', err);
+      setError(`Failed to start video: ${err.message}`);
+      isInitializingRef.current = false;
+      hasInitializedRef.current = false;
+      
+      // Clean up on error
+      if (dailyCallRef.current) {
+        try {
+          dailyCallRef.current.leave();
+          dailyCallRef.current.destroy();
+        } catch (cleanupErr) {
+          console.warn('Error cleaning up after failed initialization:', cleanupErr);
+        }
+        dailyCallRef.current = null;
+      }
+    }
   };
 
   const handleEndSession = async () => {
     try {
       await sessionsAPI.updateSessionStatus(id, 'COMPLETED');
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Error ending session:', err);
-      navigate('/dashboard');
-    }
-  };
-
-  const handleLeaveSession = async () => {
-    try {
-      // Mark session as completed when anyone leaves
-      await sessionsAPI.updateSessionStatus(id, 'COMPLETED');
       
       // Update local session state
       setSession({ ...session, status: 'COMPLETED' });
 
-      // Dispose Jitsi
-      if (jitsiApiRef.current) {
-        jitsiApiRef.current.dispose();
-        jitsiApiRef.current = null;
+      // Clean up Daily.co call
+      if (dailyCallRef.current) {
+        try {
+          dailyCallRef.current.leave();
+          dailyCallRef.current.destroy();
+        } catch (err) {
+          console.warn('Error cleaning up Daily.co call:', err);
+        }
+        dailyCallRef.current = null;
       }
+      
+      // Reset flags
+      hasInitializedRef.current = false;
+      isInitializingRef.current = false;
 
       // If student is leaving, show rating modal
       if (userData.role === 'STUDENT') {
@@ -146,12 +216,21 @@ const SessionRoom = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      console.error('Error leaving session:', err);
+      console.error('Error ending session:', err);
       // Still navigate even if update fails
-      if (jitsiApiRef.current) {
-        jitsiApiRef.current.dispose();
-        jitsiApiRef.current = null;
+      if (dailyCallRef.current) {
+        try {
+          dailyCallRef.current.leave();
+          dailyCallRef.current.destroy();
+        } catch (cleanupErr) {
+          console.warn('Error cleaning up Daily.co call:', cleanupErr);
+        }
+        dailyCallRef.current = null;
       }
+      
+      // Reset flags
+      hasInitializedRef.current = false;
+      isInitializingRef.current = false;
       
       // Show rating modal for students anyway
       if (userData.role === 'STUDENT') {
@@ -160,6 +239,26 @@ const SessionRoom = () => {
         navigate('/dashboard');
       }
     }
+  };
+
+  const handleLeaveSession = async () => {
+    // Leave Daily.co call first
+    if (dailyCallRef.current) {
+      try {
+        dailyCallRef.current.leave();
+        dailyCallRef.current.destroy();
+      } catch (err) {
+        console.warn('Error leaving Daily.co call:', err);
+      }
+      dailyCallRef.current = null;
+    }
+    
+    // Reset flags
+    hasInitializedRef.current = false;
+    isInitializingRef.current = false;
+
+    // Then handle session end
+    await handleEndSession();
   };
 
   const handleRatingClose = () => {
@@ -231,10 +330,19 @@ const SessionRoom = () => {
 
       {/* Main Content: Video + Chat */}
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
-        {/* Jitsi Video Container */}
+        {/* Daily.co Video Container */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div ref={jitsiContainerRef} />
+          <div className="bg-white rounded-lg shadow-md overflow-hidden" style={{ height: '600px', position: 'relative' }}>
+            {dailyRoomUrl && dailyToken ? (
+              <div ref={dailyContainerRef} style={{ width: '100%', height: '100%', position: 'relative' }} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Connecting to video room...</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -252,7 +360,7 @@ const SessionRoom = () => {
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600">
-              <span className="font-medium">Room ID:</span> {session.jitsiRoomId}
+              <span className="font-medium">Room:</span> {session.dailyRoomName || session.jitsiRoomId || 'N/A'}
             </p>
             <p className="text-gray-600">
               <span className="font-medium">Duration:</span> {session.duration} minutes
@@ -288,4 +396,3 @@ const SessionRoom = () => {
 };
 
 export default SessionRoom;
-

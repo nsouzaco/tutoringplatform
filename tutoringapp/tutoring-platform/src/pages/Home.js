@@ -62,21 +62,13 @@ const Home = () => {
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             ) : (
-              <>
-                <Link
-                  to="/register"
-                  className="group h-12 rounded-full bg-white px-8 text-base font-medium text-black hover:bg-white/90 transition-all flex items-center space-x-2"
-                >
-                  <span>Get Started</span>
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  to="/login"
-                  className="h-12 rounded-full border-2 border-white/30 bg-white/10 backdrop-blur-sm px-8 text-base font-medium text-white hover:bg-white/20 transition-all"
-                >
-                  Sign In
-                </Link>
-              </>
+              <Link
+                to="/register"
+                className="group h-12 rounded-full bg-white px-8 text-base font-medium text-black hover:bg-white/90 transition-all flex items-center space-x-2"
+              >
+                <span>Get Started</span>
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             )}
           </motion.div>
 

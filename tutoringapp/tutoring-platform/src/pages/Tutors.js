@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { tutorsAPI, sessionsAPI } from '../services/api';
 import { motion } from 'framer-motion';
-import { Search, User, Calendar, BookOpen, Clock, X, Check } from 'lucide-react';
+import { Search, User, Calendar, BookOpen, X, Check } from 'lucide-react';
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const Tutors = () => {
+  const navigate = useNavigate();
   const [tutors, setTutors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -14,7 +16,7 @@ const Tutors = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState(null);
-  const [duration, setDuration] = useState(60);
+  const [duration] = useState(30); // Fixed 30 minute sessions
   const [bookingSuccess, setBookingSuccess] = useState(false);
 
   useEffect(() => {
@@ -53,19 +55,26 @@ const Tutors = () => {
       dayAvailability.forEach((avail) => {
         // Parse start and end times
         const [startHour, startMin] = avail.startTime.split(':').map(Number);
-        const [endHour] = avail.endTime.split(':').map(Number);
+        const [endHour, endMin] = avail.endTime.split(':').map(Number);
         
-        // Create slots every hour
-        for (let hour = startHour; hour < endHour; hour++) {
+        // Convert to total minutes for easier calculation
+        const startTotalMinutes = startHour * 60 + (startMin || 0);
+        const endTotalMinutes = endHour * 60 + (endMin || 0);
+        
+        // Create slots every 30 minutes
+        for (let totalMinutes = startTotalMinutes; totalMinutes < endTotalMinutes; totalMinutes += 30) {
+          const slotHour = Math.floor(totalMinutes / 60);
+          const slotMin = totalMinutes % 60;
+          
           const slotDate = new Date(date);
-          slotDate.setHours(hour, startMin || 0, 0, 0);
+          slotDate.setHours(slotHour, slotMin, 0, 0);
           
           // Only show future slots
           if (slotDate > now) {
             slots.push({
               date: slotDate,
               dayName: DAYS_OF_WEEK[dayOfWeek],
-              time: `${String(hour).padStart(2, '0')}:${String(startMin || 0).padStart(2, '0')}`,
+              time: `${String(slotHour).padStart(2, '0')}:${String(slotMin).padStart(2, '0')}`,
             });
           }
         }
@@ -93,7 +102,7 @@ const Tutors = () => {
         setBookingSuccess(false);
         setSelectedSlot(null);
         setSelectedTutor(null);
-        setDuration(60);
+        navigate('/dashboard');
       }, 2000);
     } catch (err) {
       setError(err.message);
@@ -172,10 +181,9 @@ const Tutors = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 whileHover={{ y: -5 }}
-                className="bg-gray-50 p-6 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all group flex flex-col"
+                className="bg-gray-50 p-6 rounded-2xl border border-gray-200 hover:border-purple-500/50 transition-all group"
               >
-                <div className="flex-grow">
-                  <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
                       <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                         {tutor.name.charAt(0)}
@@ -212,32 +220,33 @@ const Tutors = () => {
                     </div>
                   )}
 
-                  {tutor.availability && tutor.availability.length > 0 && (
-                    <div className="mb-4">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <Calendar className="h-4 w-4 text-green-600" />
-                        <p className="text-sm font-semibold text-gray-700">Available:</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {[...new Set(tutor.availability.map(a => a.dayOfWeek))].map((day) => (
-                          <span
-                            key={day}
-                            className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-sm"
-                          >
-                            {DAYS_OF_WEEK[day]}
-                          </span>
-                        ))}
-                      </div>
+                {tutor.availability && tutor.availability.length > 0 && (
+                  <div className="mb-4">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Calendar className="h-4 w-4 text-green-600" />
+                      <p className="text-sm font-semibold text-gray-700">Available:</p>
                     </div>
-                  )}
-                </div>
+                    <div className="flex flex-wrap gap-2">
+                      {[...new Set(tutor.availability.map(a => a.dayOfWeek))].map((day) => (
+                        <span
+                          key={day}
+                          className="px-2 py-1 bg-green-100 text-green-700 rounded-lg text-sm"
+                        >
+                          {DAYS_OF_WEEK[day]}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-                <button
-                  onClick={() => openBookingModal(tutor)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-full font-medium transition-all shadow-lg hover:shadow-purple-500/50 mt-4"
-                >
-                  Book Session
-                </button>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => openBookingModal(tutor)}
+                    className="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-full font-medium transition-all shadow-lg hover:shadow-gray-900/50"
+                  >
+                    Book Session
+                  </button>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -250,12 +259,12 @@ const Tutors = () => {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.2 }}
-              className="bg-gray-900 border border-white/20 rounded-2xl p-8 max-w-2xl w-full my-8"
+              className="bg-white rounded-2xl p-8 max-w-2xl w-full my-8 shadow-2xl"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-1">Book Session</h2>
-                  <p className="text-gray-400">with {selectedTutor.name}</p>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">Book Session</h2>
+                  <p className="text-gray-600">with {selectedTutor.name}</p>
                 </div>
                 <button
                   onClick={() => {
@@ -264,65 +273,42 @@ const Tutors = () => {
                     setSelectedSlot(null);
                     setError('');
                   }}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-gray-400 hover:text-gray-900 transition-colors"
                 >
                   <X className="h-6 w-6" />
                 </button>
               </div>
 
               {bookingSuccess ? (
-                <div className="bg-green-500/20 border border-green-500/50 text-green-200 px-6 py-4 rounded-xl flex items-center space-x-3">
+                <div className="bg-green-50 border border-green-500 text-green-700 px-6 py-4 rounded-xl flex items-center space-x-3">
                   <Check className="h-5 w-5" />
                   <span>Session booked successfully! Redirecting...</span>
                 </div>
               ) : (
                 <>
                   {error && (
-                    <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-6 py-4 rounded-xl mb-6">
+                    <div className="bg-red-50 border border-red-500 text-red-700 px-6 py-4 rounded-xl mb-6">
                       {error}
                     </div>
                   )}
 
                   <div className="space-y-6">
-                    {/* Duration Selector */}
-                    <div>
-                      <div className="flex items-center space-x-2 mb-3">
-                        <Clock className="h-4 w-4 text-purple-400" />
-                        <label className="block text-white font-medium">Session Duration</label>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {[15, 30, 45, 60].map((min) => (
-                          <button
-                            key={min}
-                            onClick={() => setDuration(min)}
-                            className={`py-3 px-4 rounded-xl font-medium transition-all ${
-                              duration === min
-                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                                : 'bg-white/10 text-gray-300 hover:bg-white/20 border border-white/10'
-                            }`}
-                          >
-                            {min} min
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
                     {/* Available Time Slots */}
                     <div>
                       <div className="flex items-center space-x-2 mb-3">
-                        <Calendar className="h-4 w-4 text-purple-400" />
-                        <label className="block text-white font-medium">
+                        <Calendar className="h-4 w-4 text-purple-600" />
+                        <label className="block text-gray-900 font-medium">
                           Select Available Time Slot
                         </label>
                       </div>
                       
                       {availableSlots.length === 0 ? (
-                        <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
-                          <Calendar className="h-12 w-12 text-gray-600 mx-auto mb-3" />
-                          <p className="text-gray-400">No available slots in the next 7 days. Please check back later.</p>
+                        <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+                          <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                          <p className="text-gray-600">No available slots in the next 7 days. Please check back later.</p>
                         </div>
                       ) : (
-                        <div className="max-h-96 overflow-y-auto bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                        <div className="max-h-96 overflow-y-auto bg-gray-50 border border-gray-200 rounded-xl p-3 space-y-2">
                           {availableSlots.map((slot, index) => {
                             const isSelected = selectedSlot?.date?.getTime() === slot.date.getTime();
                             return (
@@ -331,8 +317,8 @@ const Tutors = () => {
                                 onClick={() => setSelectedSlot(slot)}
                                 className={`w-full p-4 rounded-xl text-left transition-all ${
                                   isSelected
-                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                                    : 'bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10'
+                                    ? 'bg-black text-white shadow-lg'
+                                    : 'bg-white hover:bg-gray-100 text-gray-700 border border-gray-200'
                                 }`}
                               >
                                 <div className="flex justify-between items-center">
@@ -340,7 +326,7 @@ const Tutors = () => {
                                     <p className="font-medium">
                                       {slot.dayName}, {slot.date.toLocaleDateString()}
                                     </p>
-                                    <p className={`text-sm ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                    <p className={`text-sm ${isSelected ? 'text-white' : 'text-gray-500'}`}>
                                       {slot.time}
                                     </p>
                                   </div>
@@ -365,14 +351,14 @@ const Tutors = () => {
                           setSelectedSlot(null);
                           setError('');
                         }}
-                        className="flex-1 bg-white/10 hover:bg-white/20 border border-white/20 text-white py-3 rounded-full font-medium transition-all"
+                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-3 rounded-full font-medium transition-all shadow-lg"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleBookSession}
                         disabled={!selectedSlot}
-                        className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+                        className="flex-1 bg-black hover:bg-gray-800 text-white py-3 rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
                       >
                         Confirm Booking
                       </button>

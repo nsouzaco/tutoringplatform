@@ -71,6 +71,7 @@ export const sessionsAPI = {
   createSession: (data) => api.post('/sessions', data),
   updateSessionStatus: (id, status) => api.patch(`/sessions/${id}/status`, { status }),
   cancelSession: (id) => api.delete(`/sessions/${id}`),
+  getMeetingToken: (id) => api.get(`/sessions/${id}/token`),
 };
 
 // Reports API

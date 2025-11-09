@@ -69,13 +69,7 @@ const AdminTutorDetail = () => {
     <div className="min-h-screen bg-white py-8">
       <div className="max-w-7xl mx-auto px-4">
         {/* Back Button */}
-        <button
-          onClick={() => navigate('/admin')}
-          className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-          <span>Back to Admin Dashboard</span>
-        </button>
+
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6">
@@ -242,39 +236,58 @@ const AdminTutorDetail = () => {
             className="mb-6"
           >
             <h2 className="text-2xl font-semibold mb-4 text-gray-900">First Session Performance</h2>
-            <div className={`p-6 rounded-2xl border-2 ${
-              tutor.metrics.isHighChurn 
-                ? 'bg-red-50 border-red-300' 
-                : 'bg-green-50 border-green-300'
-            }`}>
-              <div className="flex items-start space-x-4">
-                {tutor.metrics.isHighChurn ? (
-                  <AlertTriangle className="h-8 w-8 text-red-600 flex-shrink-0" />
-                ) : (
-                  <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0" />
-                )}
-                <div className="flex-1">
-                  <h3 className={`text-xl font-semibold mb-2 ${
-                    tutor.metrics.isHighChurn ? 'text-red-900' : 'text-green-900'
-                  }`}>
-                    {tutor.metrics.isHighChurn ? 'High Churn Risk Detected' : 'Healthy First Session Performance'}
-                  </h3>
-                  <p className={`mb-3 ${
-                    tutor.metrics.isHighChurn ? 'text-red-800' : 'text-green-800'
-                  }`}>
-                    {tutor.metrics.badFirstSessionRatings} out of {tutor.metrics.firstSessionRatings} first sessions
-                    rated below 3 stars ({Math.round((tutor.metrics.badFirstSessionRatings / tutor.metrics.firstSessionRatings) * 100)}%)
-                  </p>
-                  {tutor.metrics.isHighChurn && (
-                    <div className="bg-red-100 p-3 rounded-lg">
-                      <p className="text-sm text-red-900 font-medium">
-                        ⚠️ Recommendation: Review tutor's teaching approach and consider additional training or mentorship.
+            {(() => {
+              const hasBadFirstSessions = tutor.metrics.badFirstSessionRatings > 0;
+              const isHealthy = !hasBadFirstSessions && tutor.metrics.firstSessionRatings > 0;
+              const showWarning = hasBadFirstSessions;
+              
+              return (
+                <div className={`p-6 rounded-2xl border-2 ${
+                  showWarning 
+                    ? 'bg-red-50 border-red-300' 
+                    : isHealthy
+                    ? 'bg-green-50 border-green-300'
+                    : 'bg-gray-50 border-gray-300'
+                }`}>
+                  <div className="flex items-start space-x-4">
+                    {showWarning ? (
+                      <AlertTriangle className="h-8 w-8 text-red-600 flex-shrink-0" />
+                    ) : isHealthy ? (
+                      <CheckCircle className="h-8 w-8 text-green-600 flex-shrink-0" />
+                    ) : null}
+                    <div className="flex-1">
+                      <h3 className={`text-xl font-semibold mb-2 ${
+                        showWarning ? 'text-red-900' : isHealthy ? 'text-green-900' : 'text-gray-900'
+                      }`}>
+                        {showWarning ? 'High Churn Risk Detected' : isHealthy ? 'Healthy First Session Performance' : 'No First Session Data Yet'}
+                      </h3>
+                      <p className={`mb-3 ${
+                        showWarning ? 'text-red-800' : isHealthy ? 'text-green-800' : 'text-gray-800'
+                      }`}>
+                        {tutor.metrics.firstSessionRatings > 0 ? (
+                          <>
+                            {tutor.metrics.badFirstSessionRatings} out of {tutor.metrics.firstSessionRatings} first sessions
+                            rated below 3 stars ({Math.round((tutor.metrics.badFirstSessionRatings / tutor.metrics.firstSessionRatings) * 100)}%).
+                            {isHealthy && (
+                              <span className="block mt-1">Healthy first sessions are those rated 3, 4, or 5 stars.</span>
+                            )}
+                          </>
+                        ) : (
+                          'No first sessions have been rated yet.'
+                        )}
                       </p>
+                      {showWarning && (
+                        <div className="bg-red-100 p-3 rounded-lg">
+                          <p className="text-sm text-red-900 font-medium">
+                            ⚠️ Recommendation: Review tutor's teaching approach and consider additional training or mentorship.
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            </div>
+              );
+            })()}
           </motion.div>
         )}
 
@@ -290,7 +303,7 @@ const AdminTutorDetail = () => {
             <button
               onClick={handleGenerateAISummary}
               disabled={generatingAI || tutor.metrics.totalRatings === 0}
-              className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
+              className="flex items-center space-x-2 px-6 py-3 bg-black hover:bg-gray-800 text-white rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg"
             >
               {generatingAI ? (
                 <>

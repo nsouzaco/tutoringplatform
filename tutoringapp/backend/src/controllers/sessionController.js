@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const crypto = require('crypto');
+const dailyService = require('../services/dailyService');
 
 // Helper function to check for booking conflicts
 const checkAvailabilityConflict = async (tutorId, startTime, endTime, excludeSessionId = null) => {
@@ -191,10 +192,10 @@ const createSession = async (req, res, next) => {
     });
     const isFirstSession = previousSessions === 0;
 
-    // Generate unique Jitsi room ID
+    // Generate unique Jitsi room ID (kept for backward compatibility)
     const jitsiRoomId = `tutoring-${crypto.randomBytes(8).toString('hex')}`;
 
-    // Create session
+    // Create session first (without Daily.co room)
     const session = await prisma.session.create({
       data: {
         studentId: userId,
@@ -226,7 +227,46 @@ const createSession = async (req, res, next) => {
       },
     });
 
-    res.status(201).json({ session });
+    // Create Daily.co room for the session
+    try {
+      const dailyRoom = await dailyService.createRoom(session.id, duration);
+      
+      // Update session with Daily.co room info
+      const updatedSession = await prisma.session.update({
+        where: { id: session.id },
+        data: {
+          dailyRoomUrl: dailyRoom.url,
+          dailyRoomName: dailyRoom.name,
+        },
+        include: {
+          student: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+          tutor: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              profilePhoto: true,
+            },
+          },
+        },
+      });
+
+      res.status(201).json({ session: updatedSession });
+    } catch (error) {
+      // If Daily.co room creation fails, still return session but log error
+      console.error('Failed to create Daily.co room:', error.message);
+      res.status(201).json({ 
+        session,
+        warning: 'Session created but video room setup failed. Please contact support.'
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -259,6 +299,12 @@ const updateSessionStatus = async (req, res, next) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    // Get session with Daily.co room info before updating
+    const sessionBeforeUpdate = await prisma.session.findUnique({
+      where: { id },
+      select: { dailyRoomName: true, status: true },
+    });
+
     // Update session
     const updatedSession = await prisma.session.update({
       where: { id },
@@ -282,6 +328,16 @@ const updateSessionStatus = async (req, res, next) => {
         },
       },
     });
+
+    // Clean up Daily.co room when session is completed or cancelled
+    if ((status === 'COMPLETED' || status === 'CANCELLED') && sessionBeforeUpdate?.dailyRoomName) {
+      try {
+        await dailyService.deleteRoom(sessionBeforeUpdate.dailyRoomName);
+      } catch (error) {
+        // Don't fail the request if room deletion fails
+        console.warn(`Failed to delete Daily.co room ${sessionBeforeUpdate.dailyRoomName}:`, error.message);
+      }
+    }
 
     res.json({ session: updatedSession });
   } catch (error) {
@@ -355,6 +411,15 @@ const cancelSession = async (req, res, next) => {
       },
     });
 
+    // Clean up Daily.co room if it exists
+    if (session.dailyRoomName) {
+      try {
+        await dailyService.deleteRoom(session.dailyRoomName);
+      } catch (error) {
+        console.warn(`Failed to delete Daily.co room ${session.dailyRoomName}:`, error.message);
+      }
+    }
+
     // If tutor cancelled, trigger metrics recalculation
     if (cancelledBy === 'TUTOR' && session.tutor.tutorProfile) {
       const { recalculateTutorMetrics } = require('./ratingController');
@@ -367,11 +432,68 @@ const cancelSession = async (req, res, next) => {
   }
 };
 
+// Get Daily.co meeting token for a session
+const getMeetingToken = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    // Get session
+    const session = await prisma.session.findUnique({
+      where: { id },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        tutor: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    // Check if user has access
+    if (session.studentId !== userId && session.tutorId !== userId) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Check if Daily.co room exists
+    if (!session.dailyRoomName || !session.dailyRoomUrl) {
+      return res.status(400).json({ error: 'Video room not set up for this session' });
+    }
+
+    // Determine if user is the tutor (owner/moderator)
+    const isOwner = session.tutorId === userId;
+    const userName = isOwner ? session.tutor.name : session.student.name;
+
+    // Generate meeting token
+    const token = await dailyService.getMeetingToken(session.dailyRoomName, userName, isOwner);
+
+    res.json({
+      token,
+      roomUrl: session.dailyRoomUrl,
+      roomName: session.dailyRoomName,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getSessions,
   getSessionById,
   createSession,
   updateSessionStatus,
   cancelSession,
+  getMeetingToken,
 };
 

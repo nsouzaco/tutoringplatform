@@ -88,12 +88,14 @@ const Availability = () => {
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Availability</h1>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-6 py-2 rounded-full font-medium transition-all shadow-lg"
-          >
-            {showForm ? 'Cancel' : '+ Add Availability'}
-          </button>
+          {!showForm && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-black hover:bg-gray-800 text-white px-6 py-2 rounded-full font-medium transition-all shadow-lg"
+            >
+              + Add Availability
+            </button>
+          )}
         </div>
 
         {error && (
@@ -145,12 +147,21 @@ const Availability = () => {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-full font-medium transition-all shadow-lg"
-            >
-              Add Availability
-            </button>
+            <div className="flex justify-end space-x-3">
+              <button
+                type="submit"
+                className="bg-black hover:bg-gray-800 text-white px-8 py-3 rounded-full font-medium transition-all shadow-lg"
+              >
+                Add Availability
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-medium transition-all shadow-lg"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       )}

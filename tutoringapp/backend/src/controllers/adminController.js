@@ -99,12 +99,19 @@ const getTutors = async (req, res, next) => {
         : 0;
 
       // Check for high churn (bad reviews on first sessions)
+      // A healthy first session is one rated 3, 4, or 5 stars
+      // An unhealthy/bad first session is one rated below 3 stars (1 or 2 stars)
       const firstSessionRatings = sessions
         .filter(s => s.rating && s.isFirstSession)
         .map(s => s.rating);
 
       const badFirstSessionRatings = firstSessionRatings.filter(r => r.overallRating < 3).length;
-      const isHighChurn = firstSessionRatings.length >= 3 && badFirstSessionRatings >= 2;
+      const badFirstSessionPercentage = firstSessionRatings.length > 0 
+        ? (badFirstSessionRatings / firstSessionRatings.length) * 100 
+        : 0;
+      // High churn: if there are 3+ first sessions and 2+ are bad, OR if 100% of first sessions are bad
+      const isHighChurn = (firstSessionRatings.length >= 3 && badFirstSessionRatings >= 2) 
+        || (firstSessionRatings.length > 0 && badFirstSessionPercentage === 100);
 
       return {
         id: tutor.id,
@@ -193,10 +200,20 @@ const getTutorDetail = async (req, res, next) => {
     };
 
     // First session performance
+    // A healthy first session is one rated 3, 4, or 5 stars
+    // An unhealthy/bad first session is one rated below 3 stars (1 or 2 stars)
     const sessionsWithRatings = sessions.filter(s => s.rating);
     const firstSessionRatings = sessionsWithRatings.filter(s => s.isFirstSession).map(s => s.rating);
     const badFirstSessionRatings = firstSessionRatings.filter(r => r.overallRating < 3);
-    const isHighChurn = firstSessionRatings.length >= 3 && badFirstSessionRatings.length >= 2;
+    // High churn: if there are 3+ first sessions and 2+ are bad, OR if ALL first sessions are bad (100%)
+    const badFirstSessionPercentage = firstSessionRatings.length > 0 
+      ? (badFirstSessionRatings.length / firstSessionRatings.length) * 100 
+      : 0;
+    // Set isHighChurn to true if:
+    // 1. There are 3+ first sessions and 2+ are bad (67%+ threshold)
+    // 2. OR if ALL first sessions are bad (100% - using length comparison to avoid floating point issues)
+    const isHighChurn = (firstSessionRatings.length >= 3 && badFirstSessionRatings.length >= 2) 
+      || (firstSessionRatings.length > 0 && badFirstSessionRatings.length === firstSessionRatings.length);
 
     // All feedback comments
     const feedbackComments = sessionsWithRatings

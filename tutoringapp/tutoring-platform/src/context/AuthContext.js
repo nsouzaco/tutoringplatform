@@ -80,7 +80,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       await signInWithEmailAndPassword(auth, email, password);
-      // User data will be fetched by onAuthStateChanged
+      
+      // Explicitly fetch user data before returning
+      // This ensures userData is available before navigation
+      await fetchUserData();
+      
       return { success: true };
     } catch (err) {
       setError(err.message);

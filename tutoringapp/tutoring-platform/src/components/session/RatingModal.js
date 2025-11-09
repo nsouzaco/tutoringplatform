@@ -126,7 +126,7 @@ const RatingModal = ({ sessionId, onClose, onSubmitSuccess }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white py-3 rounded-full font-medium disabled:opacity-50 transition-all shadow-lg hover:shadow-purple-500/50"
+              className="flex-1 bg-black hover:bg-gray-800 text-white py-3 rounded-full font-medium disabled:opacity-50 transition-all shadow-lg"
             >
               {submitting ? 'Submitting...' : 'Submit Rating'}
             </button>

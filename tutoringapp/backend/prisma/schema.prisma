@@ -81,7 +81,9 @@ model Session {
   endTime     DateTime
   duration    Int           // Duration in minutes (15, 30, 45, 60)
   status      SessionStatus @default(SCHEDULED)
-  jitsiRoomId String        @unique // Unique room ID for Jitsi
+  jitsiRoomId String?       @unique // DEPRECATED: Old Jitsi room ID (kept for backward compatibility)
+  dailyRoomUrl String?       @unique // Daily.co room URL
+  dailyRoomName String?              // Daily.co room name
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 

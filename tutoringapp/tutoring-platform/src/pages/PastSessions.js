@@ -102,10 +102,10 @@ const PastSessions = () => {
                       Session with {otherUser.name}
                     </h3>
                     <p className="text-gray-600 text-sm">
-                      📅 {new Date(session.startTime).toLocaleDateString()}
+                      {new Date(session.startTime).toLocaleDateString()}
                     </p>
                     <p className="text-gray-600 text-sm">
-                      🕒 {new Date(session.startTime).toLocaleTimeString()} ({session.duration} minutes)
+                      {new Date(session.startTime).toLocaleTimeString()} ({session.duration} minutes)
                     </p>
                     <span className="inline-block mt-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-xs font-medium">
                       COMPLETED
@@ -125,14 +125,14 @@ const PastSessions = () => {
                             Generating...
                           </span>
                         ) : (
-                          '🤖 Generate AI Report'
+                          'Generate AI Report'
                         )}
                       </button>
                       <button
                         onClick={() => handleViewReport(session.id)}
                         className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full font-medium transition-all text-sm"
                       >
-                        📄 View Report
+                        View Report
                       </button>
                     </div>
                   )}
