@@ -17,10 +17,19 @@ const app = express();
 const server = http.createServer(app);
 
 // Initialize Socket.io
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'https://soft-rugelach-38ffa4.netlify.app',
+].filter(Boolean); // Remove any undefined values
+
 const io = socketIo(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 });
 
@@ -52,10 +61,29 @@ if (process.env.REDIS_URL) {
 app.set('io', io);
 
 // Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'https://soft-rugelach-38ffa4.netlify.app',
+    ].filter(Boolean);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-}));
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -167,7 +195,7 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 CORS enabled for: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
+  console.log(`🌐 CORS enabled for: ${allowedOrigins.join(', ')}`);
 });
 
 module.exports = { app, server, io };
