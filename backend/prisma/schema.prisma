@@ -1,0 +1,217 @@
+// Prisma Schema for Tutoring Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Users table - handles both students and tutors
+model User {
+  id            String    @id @default(uuid())
+  firebaseUid   String    @unique
+  email         String    @unique
+  name          String
+  role          Role
+  phoneNumber   String?
+  location      String?
+  profilePhoto  String?
+  timezone      String    @default("UTC")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  tutorProfile      TutorProfile?
+  studentsessions   Session[] @relation("StudentSessions")
+  tutorsessions     Session[] @relation("TutorSessions")
+  chatMessages      ChatMessage[]
+}
+
+enum Role {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+// Tutor-specific profile information
+model TutorProfile {
+  id          String  @id @default(uuid())
+  userId      String  @unique
+  bio         String?
+  subjects    String[] // Array of subjects/expertise areas
+  hourlyRate  Float?  // Optional for MVP
+
+  // Relations
+  user          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availability  Availability[]
+  sessionNotes  SessionNote[]
+  sessionReports SessionReport[]
+  metrics       TutorMetrics?
+}
+
+// Tutor availability slots
+model Availability {
+  id          String   @id @default(uuid())
+  tutorId     String
+  dayOfWeek   Int      // 0 = Sunday, 6 = Saturday
+  startTime   String   // Format: "HH:MM" (24-hour)
+  endTime     String   // Format: "HH:MM" (24-hour)
+  isRecurring Boolean  @default(true)
+  isEnabled   Boolean  @default(true)
+  specificDate DateTime? // For one-time availability
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tutor TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@index([tutorId, isEnabled])
+}
+
+// Tutoring sessions
+model Session {
+  id          String        @id @default(uuid())
+  studentId   String
+  tutorId     String
+  startTime   DateTime
+  endTime     DateTime
+  duration    Int           // Duration in minutes (15, 30, 45, 60)
+  status      SessionStatus @default(SCHEDULED)
+  jitsiRoomId String?       @unique // DEPRECATED: Old Jitsi room ID (kept for backward compatibility)
+  dailyRoomUrl String?       @unique // Daily.co room URL
+  dailyRoomName String?              // Daily.co room name
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Quality tracking fields
+  isFirstSession      Boolean  @default(false) // First session between this student-tutor pair
+  cancelledBy         String? // 'TUTOR' | 'STUDENT' | null
+  cancelledAt         DateTime?
+  cancellationReason  String?  @db.Text
+
+  // Relations
+  student       User @relation("StudentSessions", fields: [studentId], references: [id], onDelete: Cascade)
+  tutor         User @relation("TutorSessions", fields: [tutorId], references: [id], onDelete: Cascade)
+  chatMessages  ChatMessage[]
+  sessionNote   SessionNote?
+  sessionReport SessionReport?
+  rating        SessionRating?
+
+  @@index([studentId, status])
+  @@index([tutorId, status])
+  @@index([startTime])
+  @@index([isFirstSession])
+  @@index([cancelledBy])
+}
+
+enum SessionStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+// Real-time chat messages during sessions
+model ChatMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  senderId  String
+  message   String   @db.Text
+  timestamp DateTime @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, timestamp])
+}
+
+// Collaborative notes for each session
+model SessionNote {
+  id        String   @id @default(uuid())
+  sessionId String   @unique
+  tutorId   String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  session Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tutor   TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+}
+
+// AI-generated session reports (for tutors)
+model SessionReport {
+  id          String   @id @default(uuid())
+  sessionId   String   @unique
+  tutorId     String
+  reportData  Json     // Structured JSON report with all sections
+  generatedAt DateTime @default(now())
+
+  // Relations
+  session Session      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  tutor   TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@index([tutorId, generatedAt])
+}
+
+// Student ratings for completed sessions
+model SessionRating {
+  id            String   @id @default(uuid())
+  sessionId     String   @unique
+  session       Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  // Rating categories (1-5 stars)
+  punctuality   Int // Was tutor on time? (1-5)
+  friendliness  Int // Was tutor friendly? (1-5)
+  helpfulness   Int // Was tutor helpful? (1-5)
+  
+  // Overall
+  overallRating Float // Average of above 3 categories
+  
+  // Optional feedback
+  comment       String? @db.Text
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([sessionId])
+  @@index([overallRating])
+}
+
+// Tutor performance metrics (calculated automatically)
+model TutorMetrics {
+  id                         String   @id @default(uuid())
+  tutorId                    String   @unique
+  tutor                      TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  
+  // Overall statistics
+  averageRating              Float    @default(0)
+  totalSessions              Int      @default(0)
+  completedSessions          Int      @default(0)
+  cancelledSessions          Int      @default(0)
+  cancellationsThisWeek      Int      @default(0)
+  
+  // First session performance (per student-tutor pair)
+  firstSessionCount          Int      @default(0)
+  firstSessionLowRatingCount Int      @default(0) // Count of first sessions with <3 stars
+  firstSessionAvgRating      Float    @default(0)
+  
+  // Churn indicators
+  churnRiskScore             Float    @default(0) // 0-100
+  isHighChurnRisk            Boolean  @default(false)
+  isHighCancellation         Boolean  @default(false)
+  
+  // Timestamps
+  lastCalculatedAt           DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  
+  @@index([tutorId])
+  @@index([churnRiskScore])
+  @@index([isHighChurnRisk])
+  @@index([isHighCancellation])
+}
+

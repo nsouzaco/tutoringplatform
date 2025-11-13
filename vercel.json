@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd tutoring-platform && npm run build",
+  "outputDirectory": "tutoring-platform/build",
+  "devCommand": "cd tutoring-platform && npm start",
+  "installCommand": "cd tutoring-platform && npm install",
+  "framework": "create-react-app",
+  "regions": ["iad1"],
+  "nodeVersion": "22.x"
+}
+

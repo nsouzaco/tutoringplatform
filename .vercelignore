@@ -1,0 +1,15 @@
+# Vercel ignore file
+node_modules
+.env
+.env.local
+*.log
+.DS_Store
+memory-bank
+*.md
+backend
+database
+tutoring_platform_prd.md
+
+
+
+
