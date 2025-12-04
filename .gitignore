@@ -1,10 +1,22 @@
 # Memory Bank - Project documentation (not version controlled)
 memory-bank/
 
-# Environment variables
+# Environment variables - NEVER commit secrets
 .env
+.env.*
 .env.local
 .env.*.local
+*.env
+
+# Deployment configs with secrets - configure in platform UI instead
+*-task-definition.json
+apprunner-*.json
+*-config.json
+
+# Firebase credentials
+*-firebase-adminsdk-*.json
+firebase-*.json
+serviceAccountKey.json
 
 # Build outputs
 build/
@@ -33,3 +45,5 @@ yarn-error.log*
 # Vercel
 .vercel/
 
+# Test/debug files
+test-*.js
