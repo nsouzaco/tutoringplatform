@@ -340,20 +340,6 @@ The backend is deployed on Railway:
 - [x] High churn risk detection
 - [x] Tutor performance analytics
 
-### 🔄 Future Enhancements
-- Payment processing and billing
-- Tutor verification/qualifications
-- Email notifications
-- SMS reminders
-- Mobile apps (iOS/Android)
-- Advanced calendar features
-- Session recordings
-- Audio transcription
-
 ## 🤝 Contributing
 
 For major changes or features, update the memory bank documentation first. See `memory-bank/` for project context and patterns.
-
-## 📄 License
-
-Private project - All rights reserved
