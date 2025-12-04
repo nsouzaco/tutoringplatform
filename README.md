@@ -1,124 +1,121 @@
+<div align="center">
+
 # SmartTutor
 
-![SmartTutor Landing Page](./smarttutor-landing.png)
+**A full-stack tutoring platform connecting students with expert tutors for one-on-one video sessions, powered by AI-generated insights and real-time collaboration.**
 
-A web-based tutoring platform connecting students with expert tutors for one-on-one video sessions, powered by AI insights and comprehensive quality tracking.
+<br />
 
-## 🚀 Features
+![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth-DD2C00?style=flat-square&logo=firebase&logoColor=white)
+![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?style=flat-square&logo=openai&logoColor=white)
 
-### ✅ Core Features
+</div>
 
-- **Authentication System** 
-  - Firebase Auth (email/password)
-  - User registration with role selection (Student/Tutor/Admin)
-  - Protected routes with role-based access control
-  - Session persistence and token management
+<br />
 
-- **Tutor Availability Management**
-  - Set recurring or one-time availability slots
-  - Day-of-week scheduling with time ranges
-  - Enable/disable slots dynamically
-  - Visual calendar interface
+## ✨ Features
 
-- **Session Booking System**
-  - Browse available tutors with subject filtering
-  - View tutor profiles and availability
-  - Book sessions with flexible durations (15, 30, 45, or 60 minutes)
-  - Conflict detection and validation
-  - Real-time booking confirmations
+| Feature | Description |
+|---------|-------------|
+| **Live Video Sessions** | Daily.co-powered HD video conferencing with screen sharing and device controls |
+| **Real-time Collaboration** | In-session chat and collaborative note-taking synced via Socket.io |
+| **AI Session Reports** | GPT-4o analyzes conversations to generate summaries, progress insights, and recommendations |
+| **Smart Scheduling** | Tutors set availability; students browse, filter by subject, and book sessions |
+| **Rating & Feedback** | Post-session ratings on punctuality, friendliness, and helpfulness |
+| **Admin Dashboard** | Platform analytics, tutor performance monitoring, and high churn risk detection |
+| **Role-Based Access** | Distinct experiences for Students, Tutors, and Admins with protected routes |
 
-- **Live Video Sessions**
-  - Daily.co video conferencing integration
-  - One-click session joining
-  - Screen sharing capabilities
-  - Device selection and audio/video controls
-  - Automatic session status tracking (SCHEDULED → LIVE → COMPLETED)
+<br />
 
-- **Real-time Collaboration**
-  - In-session text chat with timestamps
-  - Collaborative note-taking (both users can edit)
-  - Real-time synchronization via Socket.io
-  - Chat and notes persistence
+## 🛠 Tech Stack
 
-- **AI-Powered Session Reports**
-  - Automatic report generation after sessions
-  - GPT-4o analysis of chat conversations and notes
-  - Structured insights: summary, topics covered, student progress, strengths, areas for improvement, recommendations
-  - Asynchronous processing via Bull queue with Redis
-  - Progress tracking and status updates
+<table>
+<tr>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=react" width="48" height="48" alt="React" />
+<br />React 19
+</td>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=nodejs" width="48" height="48" alt="Node.js" />
+<br />Node.js
+</td>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=express" width="48" height="48" alt="Express" />
+<br />Express
+</td>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=postgres" width="48" height="48" alt="PostgreSQL" />
+<br />PostgreSQL
+</td>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=prisma" width="48" height="48" alt="Prisma" />
+<br />Prisma
+</td>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=firebase" width="48" height="48" alt="Firebase" />
+<br />Firebase
+</td>
+</tr>
+<tr>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=tailwind" width="48" height="48" alt="Tailwind" />
+<br />Tailwind
+</td>
+<td align="center" width="96">
+<img src="https://skillicons.dev/icons?i=redis" width="48" height="48" alt="Redis" />
+<br />Redis
+</td>
+<td align="center" width="96">
+<img src="https://cdn.simpleicons.org/openai/412991" width="48" height="48" alt="OpenAI" />
+<br />GPT-4o
+</td>
+<td align="center" width="96">
+<img src="https://cdn.simpleicons.org/socketdotio/010101" width="48" height="48" alt="Socket.io" />
+<br />Socket.io
+</td>
+<td align="center" width="96">
+<img src="https://cdn.simpleicons.org/daily/000000" width="48" height="48" alt="Daily" />
+<br />Daily.co
+</td>
+<td align="center" width="96">
+<img src="https://cdn.simpleicons.org/framer/0055FF" width="48" height="48" alt="Framer" />
+<br />Motion
+</td>
+</tr>
+</table>
 
-- **Session Ratings & Feedback**
-  - Post-session rating system (punctuality, friendliness, helpfulness)
-  - Optional written feedback
-  - Rating display in session history
-  - First-session tracking for quality metrics
+| Category | Technologies |
+|----------|--------------|
+| **Frontend** | React 19, React Router v7, Tailwind CSS, Framer Motion, Lucide Icons |
+| **Backend** | Node.js, Express, Prisma ORM, Socket.io, Bull Queue |
+| **Database** | PostgreSQL (Neon/Vercel Postgres), Redis (Upstash) |
+| **Auth** | Firebase Authentication (Email/Password) |
+| **Video** | Daily.co JavaScript SDK |
+| **AI** | OpenAI GPT-4o |
 
-- **Admin Dashboard**
-  - Platform statistics (users, sessions, ratings)
-  - Tutor performance monitoring
-  - High churn risk detection
-  - AI-powered tutor analysis
-  - Detailed tutor profiles with metrics
-  - Student feedback aggregation
+<br />
 
-- **User Dashboards**
-  - Role-specific views (Student/Tutor/Admin)
-  - Upcoming sessions with live indicators
-  - Session history and past reports
-  - Quick action buttons
-  - Profile management
-
-- **Modern UI/UX**
-  - Dark theme with gradient backgrounds
-  - Glass-morphism design elements
-  - Responsive layout (desktop and tablet optimized)
-  - Smooth animations with Framer Motion
-  - Tailwind CSS styling
-
-## 📋 Tech Stack
-
-### Frontend
-- React 18
-- React Router v6
-- Tailwind CSS
-- Firebase Auth (Client SDK)
-- Axios
-- Socket.io-client
-- Framer Motion
-- Lucide React (icons)
-- Daily.co JavaScript SDK
-
-### Backend
-- Node.js + Express
-- Prisma ORM
-- PostgreSQL (via Neon/Vercel Postgres)
-- Firebase Admin SDK
-- Socket.io (with Redis adapter for scaling)
-- Bull (job queue for async processing)
-- Redis (Upstash for queue and Socket.io scaling)
-- OpenAI API (GPT-4o)
-
-### Third-Party Services
-- Firebase Authentication
-- Daily.co (video conferencing)
-- OpenAI GPT-4o (AI reports and analysis)
-- Upstash Redis (queue and real-time scaling)
-
-## 🛠️ Setup Instructions
+## 🚀 Setup
 
 ### Prerequisites
-- Node.js v18+
-- PostgreSQL database (Vercel Postgres, Neon, or local)
-- Firebase project
-- OpenAI API key (for AI reports)
-- Daily.co API key (for video sessions)
-- Redis instance (Upstash recommended)
 
-### 1. Clone and Install
+- Node.js 18+ and npm
+- PostgreSQL database ([Vercel Postgres](https://vercel.com/storage/postgres) or [Neon](https://neon.tech))
+- Firebase project ([create one](https://console.firebase.google.com))
+- OpenAI API key ([get one](https://platform.openai.com/api-keys))
+- Daily.co API key ([get one](https://dashboard.daily.co))
+- Redis instance ([Upstash](https://upstash.com) recommended)
+
+### Installation
 
 ```bash
+# Clone the repository
 git clone <repository-url>
-cd tutoringapp
+cd tutoringplatform
 
 # Install backend dependencies
 cd backend
@@ -129,42 +126,9 @@ cd ../tutoring-platform
 npm install
 ```
 
-### 2. Set Up Firebase
+### Environment Configuration
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project or use existing
-3. Enable **Email/Password authentication**
-4. Get your web app config (Project Settings > General)
-5. Generate Admin SDK private key (Project Settings > Service Accounts)
-
-### 3. Set Up Database
-
-**Option A: Vercel Postgres (Recommended)**
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Create project > Storage > Create Database > Postgres
-3. Copy the connection string
-4. Use as `DATABASE_URL` in backend `.env`
-
-**Option B: Neon (Alternative)**
-1. Go to [Neon Console](https://neon.tech/)
-2. Create a new project
-3. Copy the connection string
-
-**Option C: Local PostgreSQL**
-```bash
-createdb tutoring_db
-# Use: postgresql://user@localhost:5432/tutoring_db
-```
-
-### 4. Set Up Redis (for Queue and Scaling)
-
-1. Go to [Upstash](https://upstash.com/) (free tier available)
-2. Create a Redis database
-3. Copy the connection URL (starts with `rediss://`)
-
-### 5. Configure Environment Variables
-
-**Backend:** Create `backend/.env`
+**Backend** — create `backend/.env`:
 
 ```env
 PORT=5000
@@ -175,30 +139,29 @@ DATABASE_URL=postgresql://user:password@host:5432/database?sslmode=require
 
 # Firebase Admin SDK
 FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour_Key_Here\n-----END PRIVATE KEY-----\n"
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk@your-project.iam.gserviceaccount.com
 
-# OpenAI API
+# OpenAI
 OPENAI_API_KEY=sk-your-openai-api-key
 
 # Daily.co
 DAILY_API_KEY=your-daily-api-key
-DAILY_DOMAIN=go-tutor.daily.co
+DAILY_DOMAIN=your-domain.daily.co
 
-# Redis (for queue and Socket.io scaling)
+# Redis
 REDIS_URL=rediss://default:token@region.upstash.io:6379
 
-# Frontend URL (for CORS)
+# CORS
 FRONTEND_URL=http://localhost:3000
 ```
 
-**Frontend:** Create `tutoring-platform/.env`
+**Frontend** — create `tutoring-platform/.env`:
 
 ```env
 REACT_APP_API_URL=http://localhost:5000/api
 REACT_APP_SOCKET_URL=http://localhost:5000
 
-# Firebase Client SDK
 REACT_APP_FIREBASE_API_KEY=your_api_key
 REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 REACT_APP_FIREBASE_PROJECT_ID=your_project_id
@@ -207,7 +170,7 @@ REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 REACT_APP_FIREBASE_APP_ID=your_app_id
 ```
 
-### 6. Initialize Database
+### Database Setup
 
 ```bash
 cd backend
@@ -216,130 +179,152 @@ cd backend
 npm run prisma:generate
 
 # Run migrations
-npm run prisma:migrate dev
+npm run prisma:migrate
 ```
 
-### 7. Run the Application
+### Development
 
-**Terminal 1 - Backend:**
+**Terminal 1 — Backend:**
 ```bash
 cd backend
 npm run dev
 ```
 
-**Terminal 2 - Frontend:**
+**Terminal 2 — Frontend:**
 ```bash
 cd tutoring-platform
 npm start
 ```
 
-- Backend: http://localhost:5000
-- Frontend: http://localhost:3000
+- Backend: [http://localhost:5000](http://localhost:5000)
+- Frontend: [http://localhost:3000](http://localhost:3000)
+
+<br />
+
+## 📖 Usage
+
+### For Students
+
+1. **Register** as a Student and complete your profile
+2. **Browse tutors** — filter by subject, view profiles, and check availability
+3. **Book a session** — select a time slot and session duration (15–60 min)
+4. **Join the video call** — click "Join Session" when it's time
+5. **Collaborate** — use in-session chat and shared notes
+6. **Rate your tutor** — provide feedback after each session
+7. **Review AI reports** — get personalized insights and progress tracking
+
+### For Tutors
+
+1. **Register** as a Tutor with your subjects and bio
+2. **Set availability** — create recurring or one-time slots
+3. **Accept bookings** — students book directly from your calendar
+4. **Conduct sessions** — join video calls and take collaborative notes
+5. **Track performance** — view your ratings and session history
+
+### For Admins
+
+1. **Monitor platform stats** — users, sessions, ratings at a glance
+2. **Review tutor performance** — identify high performers and at-risk tutors
+3. **Generate AI analysis** — get GPT-4o insights on tutor quality
+4. **Manage quality** — track churn risk and student feedback
+
+<br />
 
 ## 📁 Project Structure
 
 ```
-tutoringapp/
-├── backend/                 # Node.js/Express API
+tutoringplatform/
+├── backend/                    # Node.js/Express API
 │   ├── src/
-│   │   ├── config/         # Firebase, Prisma setup
-│   │   ├── middleware/     # Auth, error handling
-│   │   ├── routes/         # API endpoints
-│   │   ├── controllers/    # Business logic
-│   │   ├── services/       # External services (Daily.co, AI)
-│   │   ├── queues/         # Bull queue processors
-│   │   └── app.js          # Express app
-│   ├── prisma/
-│   │   └── schema.prisma   # Database schema
-│   └── package.json
+│   │   ├── config/            # Firebase, Prisma setup
+│   │   ├── controllers/       # Request handlers
+│   │   ├── middleware/        # Auth, error handling
+│   │   ├── queues/            # Bull job processors
+│   │   ├── routes/            # API endpoints
+│   │   ├── services/          # External services (Daily.co)
+│   │   └── app.js             # Express entry point
+│   └── prisma/
+│       └── schema.prisma      # Database schema
 │
-├── tutoring-platform/       # React frontend
+├── tutoring-platform/          # React frontend
 │   ├── src/
-│   │   ├── components/     # Reusable components
-│   │   ├── pages/          # Route pages
-│   │   ├── context/        # React Context (Auth)
-│   │   ├── services/       # API calls
-│   │   └── config/         # Firebase config
-│   └── package.json
+│   │   ├── components/        # Reusable UI components
+│   │   ├── context/           # Auth context provider
+│   │   ├── pages/             # Route pages
+│   │   ├── services/          # API service layer
+│   │   └── config/            # Firebase config
+│   └── tailwind.config.js
 │
-├── memory-bank/             # Project documentation
 └── README.md
 ```
 
-## 🚀 Deployment
+<br />
 
-### Frontend (Netlify/Vercel)
-
-The frontend is deployed on Netlify:
-- **Production URL**: https://soft-rugelach-38ffa4.netlify.app
-
-**Deployment Steps:**
-1. Push code to GitHub
-2. Connect repository to Netlify
-3. Set base directory: `tutoring-platform`
-4. Configure environment variables in Netlify dashboard
-5. Deploy automatically on push
-
-### Backend (Railway)
-
-The backend is deployed on Railway:
-- **Production URL**: https://tutoringplatform-production-ccdc.up.railway.app
-
-**Deployment Steps:**
-1. Connect GitHub repository to Railway
-2. Set root directory: `backend`
-3. Configure environment variables
-4. Railway auto-deploys on push
-
-## 📝 API Endpoints
+## 🔌 API Reference
 
 ### Authentication
-- `POST /api/auth/register` - Register new user
-- `GET /api/auth/me` - Get current user
-- `PUT /api/auth/profile` - Update profile
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Register new user |
+| `GET` | `/api/auth/me` | Get current user |
+| `PUT` | `/api/auth/profile` | Update profile |
 
 ### Sessions
-- `GET /api/sessions` - Get user's sessions
-- `GET /api/sessions/:id` - Get session details
-- `POST /api/sessions` - Create new session (book)
-- `PATCH /api/sessions/:id/status` - Update session status
-- `DELETE /api/sessions/:id` - Cancel session
-- `GET /api/sessions/:id/token` - Get Daily.co meeting token
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/sessions` | List user's sessions |
+| `GET` | `/api/sessions/:id` | Get session details |
+| `POST` | `/api/sessions` | Book a session |
+| `PATCH` | `/api/sessions/:id/status` | Update session status |
+| `DELETE` | `/api/sessions/:id` | Cancel session |
+| `GET` | `/api/sessions/:id/token` | Get video meeting token |
 
 ### Availability
-- `GET /api/availability` - Get tutor's availability
-- `POST /api/availability` - Create availability slot
-- `PUT /api/availability/:id` - Update availability slot
-- `DELETE /api/availability/:id` - Delete availability slot
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/availability` | Get tutor availability |
+| `POST` | `/api/availability` | Create availability slot |
+| `PUT` | `/api/availability/:id` | Update slot |
+| `DELETE` | `/api/availability/:id` | Delete slot |
 
 ### Reports
-- `POST /api/reports/session/:id` - Generate AI report (async)
-- `GET /api/reports/session/:id` - Get session report
-- `GET /api/reports/session/:id/status` - Check report generation status
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/reports/session/:id` | Generate AI report |
+| `GET` | `/api/reports/session/:id` | Get session report |
+| `GET` | `/api/reports/session/:id/status` | Check generation status |
 
 ### Admin
-- `GET /api/admin/stats` - Platform statistics
-- `GET /api/admin/tutors` - List all tutors with metrics
-- `GET /api/admin/tutors/:id` - Get detailed tutor profile
-- `POST /api/admin/tutors/:id/ai-summary` - Generate AI tutor analysis
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/admin/stats` | Platform statistics |
+| `GET` | `/api/admin/tutors` | List tutors with metrics |
+| `GET` | `/api/admin/tutors/:id` | Detailed tutor profile |
+| `POST` | `/api/admin/tutors/:id/ai-summary` | Generate AI tutor analysis |
 
-### Health Check
-- `GET /health` - Server health status
+<br />
 
-## 🎯 Current Status
+## 🔐 Environment Variables
 
-### ✅ Completed Features
-- [x] Full authentication system
-- [x] Tutor availability management
-- [x] Session booking system
-- [x] Video conferencing (Daily.co)
-- [x] Real-time chat and notes
-- [x] AI-powered session reports
-- [x] Session ratings and feedback
-- [x] Admin dashboard with quality tracking
-- [x] High churn risk detection
-- [x] Tutor performance analytics
+### Backend
 
-## 🤝 Contributing
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `FIREBASE_PROJECT_ID` | Firebase project identifier |
+| `FIREBASE_PRIVATE_KEY` | Firebase Admin SDK private key |
+| `FIREBASE_CLIENT_EMAIL` | Firebase service account email |
+| `OPENAI_API_KEY` | OpenAI API key for GPT-4o |
+| `DAILY_API_KEY` | Daily.co API key |
+| `DAILY_DOMAIN` | Daily.co domain |
+| `REDIS_URL` | Redis connection URL |
+| `FRONTEND_URL` | Frontend URL for CORS |
 
-For major changes or features, update the memory bank documentation first. See `memory-bank/` for project context and patterns.
+### Frontend
+
+| Variable | Description |
+|----------|-------------|
+| `REACT_APP_API_URL` | Backend API base URL |
+| `REACT_APP_SOCKET_URL` | Socket.io server URL |
+| `REACT_APP_FIREBASE_*` | Firebase client SDK configuration |
+
