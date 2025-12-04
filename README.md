@@ -78,7 +78,7 @@
 <br />Socket.io
 </td>
 <td align="center" width="96">
-<img src="https://cdn.simpleicons.org/daily/000000" width="48" height="48" alt="Daily" />
+<img src="https://cdn.simpleicons.org/webrtc/333333" width="48" height="48" alt="Daily" />
 <br />Daily.co
 </td>
 <td align="center" width="96">
@@ -122,7 +122,7 @@ cd backend
 npm install
 
 # Install frontend dependencies
-cd ../tutoring-platform
+cd ../frontend
 npm install
 ```
 
@@ -156,7 +156,7 @@ REDIS_URL=rediss://default:token@region.upstash.io:6379
 FRONTEND_URL=http://localhost:3000
 ```
 
-**Frontend** — create `tutoring-platform/.env`:
+**Frontend** — create `frontend/.env`:
 
 ```env
 REACT_APP_API_URL=http://localhost:5000/api
@@ -192,7 +192,7 @@ npm run dev
 
 **Terminal 2 — Frontend:**
 ```bash
-cd tutoring-platform
+cd frontend
 npm start
 ```
 
@@ -234,7 +234,7 @@ npm start
 
 ```
 tutoringplatform/
-├── backend/                    # Node.js/Express API
+├── backend/                    # Node.js/Express API (Railway)
 │   ├── src/
 │   │   ├── config/            # Firebase, Prisma setup
 │   │   ├── controllers/       # Request handlers
@@ -246,7 +246,7 @@ tutoringplatform/
 │   └── prisma/
 │       └── schema.prisma      # Database schema
 │
-├── tutoring-platform/          # React frontend
+├── frontend/                   # React frontend (Netlify)
 │   ├── src/
 │   │   ├── components/        # Reusable UI components
 │   │   ├── context/           # Auth context provider

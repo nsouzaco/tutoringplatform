@@ -1,6 +1,6 @@
 [build]
-  command = "cd tutoring-platform && npm run build"
-  publish = "tutoring-platform/build"
+  command = "cd frontend && npm run build"
+  publish = "frontend/build"
 
 [build.environment]
   NODE_VERSION = "18"
